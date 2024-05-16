@@ -5,6 +5,8 @@ using Azure.AI.OpenAI;
 using System.Collections;
 using Microsoft.ML.Tokenizers;
 
+#pragma warning disable  CS8600, CS8602, CS8604 
+
 namespace Search.Services;
 
 public class ChatService
@@ -18,7 +20,7 @@ public class ChatService
     private readonly SemanticKernelService _semanticKernelService;
     private readonly ILogger _logger;
 
-    readonly Tokenizer tokenizer = Tokenizer.CreateTiktokenForModel("gpt-3.5-turbo");
+    private readonly Tokenizer tokenizer = Tokenizer.CreateTiktokenForModel("gpt-3.5-turbo");
 
     public ChatService(MongoDbService mongoDbService, SemanticKernelService semanticKernelService, ILogger logger)
     {
@@ -84,7 +86,7 @@ public class ChatService
                                  promptConversationVectors, _semanticKernelService.MaxContextTokens);
 
                 (completion,  promptTokens,  completionTokens) =
-                    await _semanticKernelService.GetChatCompletionAsync(
+                    await _semanticKernelService.GetCosmicChatCompletionAsync(
                         conversationContext, retrievedRAGContext, prompt);
 
                 //Add the user prompt and completion to cache collection

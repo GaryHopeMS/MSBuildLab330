@@ -3,6 +3,8 @@ using MongoDB.Driver;
 using Search.Options;
 using Search.Services;
 
+#pragma warning disable  CS8600, CS8602, CS8604 
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.RegisterConfiguration();
@@ -46,7 +48,6 @@ static class ProgramExtensions
     public static void RegisterServices(this IServiceCollection services)
     {
         
-  
         services.AddSingleton<SemanticKernelService, SemanticKernelService>((provider) =>
         {
             var semanticKernalOptions = provider.GetRequiredService<IOptions<OpenAi>>();

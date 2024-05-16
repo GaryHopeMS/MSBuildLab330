@@ -18,7 +18,7 @@ public class ChatService
     private readonly SemanticKernelService _semanticKernelService;
     private readonly ILogger _logger;
 
-    readonly Tokenizer tokenizer = Tokenizer.CreateTiktokenForModel("gpt-3.5-turbo");
+    private readonly Tokenizer tokenizer = Tokenizer.CreateTiktokenForModel("gpt-3.5-turbo");
 
     public ChatService(MongoDbService mongoDbService, SemanticKernelService semanticKernelService, ILogger logger)
     {
@@ -35,62 +35,21 @@ public class ChatService
         {
             ArgumentNullException.ThrowIfNull(sessionId);
 
+            // Setting some default values that will become more intersting to us later in the lab
             bool cacheHit = false;
-            string completion = string.Empty;
-            string retrievedRAGContext = "";
             int promptTokens = 0;
             int completionTokens = 0;
-            string collectionName = "none"; // default source collection context
+            string collectionName = "none";
 
-            if (selectedCacheEnable == "yes")
-            {
-                completion = await _semanticKernelService.CheckCache(prompt);
-                cacheHit = (completion != string.Empty);
-            }
+            string completion = string.Empty;
 
-            if (!cacheHit)
-            {
-                switch (selectedCollectionName)
-                {
-                    case "<none>":
-                        break;
+            ///// This is where the magic will happen        
+            // For now I a good at introducing myself.
 
-                    case "<auto>":
-                        (string sourceCompletionText, int sourcePromptTokens, int sourceCompletionTokens)
-                                = await _semanticKernelService.GetPreferredSourceAsync(prompt);
+            completion = "I am a really friendly chat bot and super happy to meet you" +
+                    Environment.NewLine + "but I cant realy do anything for you";
+            //
 
-                        if (sourceCompletionText == "salesOrders") collectionName = "salesOrders";
-                        if (sourceCompletionText == "products") collectionName = "products";
-                        if (sourceCompletionText == "customers") collectionName = "customers";
-                        break;
-
-                    default:
-                        collectionName = selectedCollectionName;
-                        break;
-                }
-
-                List<Message> conversationContext = GetConversationContext(sessionId,_semanticKernelService.MaxConversationTokens);
-                var conversationContextString = string
-                    .Join(Environment.NewLine,
-                        conversationContext.Select(m => m.Prompt + Environment.NewLine + m.Completion)
-                        .ToArray());
-
-                (float[] promptConversationVectors, int promptConversationTokens)
-                    = await _semanticKernelService.GetEmbeddingsAsync(conversationContextString + Environment.NewLine + prompt);
-
-                if (collectionName != "none")
-                    retrievedRAGContext
-                             = await _mongoDbService.VectorSearchAsync(collectionName, "embedding",
-                                 promptConversationVectors, _semanticKernelService.MaxContextTokens);
-
-                (completion,  promptTokens,  completionTokens) =
-                    await _semanticKernelService.GetChatCompletionAsync(
-                        conversationContext, retrievedRAGContext, prompt);
-
-                //Add the user prompt and completion to cache collection
-                await _semanticKernelService.AddCachedMemory(prompt, completion);
-            }
-          
             //Create message with all prompt, response and meta data
             Message message = new Message(
                     sessionId: sessionId,
@@ -102,7 +61,7 @@ public class ChatService
                     sourceCollection: collectionName,
                     selectedCacheEnable, cacheHit);
             
-            //Commit message to array and database
+            //Commit message to array and database to drive the user experiance
             await AddPromptCompletionMessagesAsync(sessionId, message);
 
             return completion;
@@ -115,19 +74,6 @@ public class ChatService
         }
     }
 
-    /// <summary>
-    /// Receive a prompt from a user, Vectorize it from _openAIService Get a completion from _openAiService
-    /// </summary>
-       /// <summary>
-    /// Estimate the token usage for OpenAI completion to prevent exceeding the OpenAI model's maximum token limit. This function estimates the
-    /// amount of tokens the vector search result data and the user prompt will consume. If the search result data exceeds the configured amount
-    /// the function reduces the number of vectors, reducing the amount of data sent.
-    /// </summary>
-    
-    /// <summary>
-    /// Get the most recent conversation history to provide additional context for the completion LLM
-    /// </summary>
-    /// 
     
     private string GetConversationHistoryString(string sessionId, int turns)
     {
@@ -256,7 +202,7 @@ public class ChatService
     {
         ArgumentNullException.ThrowIfNull(sessionId);
 
-        string response = await _semanticKernelService.SummarizeConversationAsync(sessionText);
+        string response = $"Chat {sessionId}";
 
         await RenameChatSessionAsync(sessionId, response);
 
@@ -283,7 +229,7 @@ public class ChatService
 
     public async Task ClearCacheAsync()
     {
-        await _semanticKernelService.ClearCacheAsync();
+       
     }
     
 

@@ -37,7 +37,6 @@ public class MongoDbService
         return counter;
     }
 
-
     /// <summary>
     /// Creates a new instance of the service.
     /// </summary>
@@ -77,13 +76,42 @@ public class MongoDbService
     }
 
     /// <summary>
+    /// Perform a vector search on the collection.
+    /// </summary>
+    /// <param name="collectionName">Name of the collection to execute the vector search.</param>
+    /// <param name="embeddings">vectors to use in the vector search.</param>
+    /// <param name="path"> property path of the embeddings vector </param>
+    /// <param name="maxTokens"> property path of the embeddings vector </param>
+    /// <returns>string payload of documents returned from the vector query</returns>
+    public async Task<string> VectorSearchAsync(string collectionName, string path, float[] embeddings, int maxTokens)
+    {
+
+        string resultDocuments = "[]"; 
+
+        try
+        {
+            var totalTokens = 0;
+            var totalDocuments = 0;
+
+       //      _logger.LogInformation($"Vector Search - Documents: {totalDocuments} Tokens: {totalTokens}");
+
+        }
+        catch (MongoException ex)
+        {
+            _logger.LogError($"Exception: VectorSearchAsync(): {ex.Message}");
+            throw;
+        }
+
+        return resultDocuments;
+    }
+
+
+    /// <summary>
     /// Create a vector index on the collection if one does not exist.
     /// </summary>
     /// <param name="collectionName">Name of the collection to create the vector index on.</param>
     /// <returns>void</returns>
     /// 
-
-
     public void SetupCollections()
     {
 
@@ -95,7 +123,6 @@ public class MongoDbService
         _database.CreateCollection("products");
         _database.CreateCollection("customers");
         _database.CreateCollection("salesOrders");
-      
 
         Console.WriteLine("creating indexes");
         CreateVectorIndexIfNotExists("products", "embedding", _vectorIndexType);
@@ -176,90 +203,7 @@ public class MongoDbService
     }
 
 
-    /// <summary>
-    /// Perform a vector search on the collection.
-    /// </summary>
-    /// <param name="collectionName">Name of the collection to execute the vector search.</param>
-    /// <param name="embeddings">vectors to use in the vector search.</param>
-    /// <param name="path"> property path of the embeddings vector </param>
-    /// <param name="maxTokens"> property path of the embeddings vector </param>
-    /// <returns>string payload of documents returned from the vector query</returns>
-    public async Task<string> VectorSearchAsync(string collectionName, string path, float[] embeddings, int maxTokens)
-    {
-
-        string resultDocuments = "["; // string.Empty;
-
-        try
-        {
-
-            IMongoCollection<BsonDocument> collection = _database.GetCollection<BsonDocument>(collectionName);
-
-            var embeddingsArray = new BsonArray(embeddings.Select(e => new BsonDouble(Convert.ToDouble(e))));
-
-            //Search MongoDB vCore collection for similar embeddings
-
-            BsonDocument[] pipeline = new BsonDocument[]
-            {
-                new BsonDocument
-                {
-                    {
-                        "$search", new BsonDocument
-                        {
-                            {
-                                "cosmosSearch", new BsonDocument
-                                {
-                                    { "vector", embeddingsArray },
-                                    { "path", path },
-                                    { "k", _maxVectorSearchResults }
-                                }
-                            },
-                            { "returnStoredSource", true }
-                        }
-                    }
-                },
-                new BsonDocument
-                {
-                    {
-                        "$project", new BsonDocument
-                        {
-                            {"_id", 0 },
-                            {path, 0 },
-                        }
-                    }
-                }
-            };
-
    
-            List<BsonDocument> bsonDocuments = await collection.Aggregate<BsonDocument>(pipeline).ToListAsync();
-            List<string> textDocuments = bsonDocuments.ConvertAll(bsonDocument => bsonDocument.ToString());
-
-            var totalTokens = 0;
-            var totalDocuments = 0;
-
-            foreach (var document in textDocuments)
-            {
-                var tokens = _tokenizer.CountTokens(document);
-                if ((totalTokens + tokens) > maxTokens)
-                {
-                    break;
-                }
-                totalTokens += tokens;
-                totalDocuments += 1;
-                resultDocuments = resultDocuments + "," + document;
-            }
-            resultDocuments = resultDocuments + "]";
-
-            _logger.LogInformation($"Vector Search - Documents: {totalDocuments} Tokens: {totalTokens}");
-
-        }
-        catch (MongoException ex)
-        {
-            _logger.LogError($"Exception: VectorSearchAsync(): {ex.Message}");
-            throw;
-        }
-
-        return resultDocuments;
-    }
 
     public async Task<Product> UpsertProductAsync(Product product)
     {

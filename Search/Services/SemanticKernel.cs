@@ -10,6 +10,7 @@ using Microsoft.SemanticKernel.Connectors.AzureCosmosDBMongoDB;
 using Search.Options;
 using Search.Models;
 
+#pragma warning disable  CS8600, CS8602, CS8604 
 #pragma warning disable SKEXP0010, SKEXP0001, SKEXP0020
 
 namespace Search.Services;
@@ -31,21 +32,26 @@ public class SemanticKernelService
     readonly AzureCosmosDBMongoDBMemoryStore memoryStore;
     readonly ISemanticTextMemory memory;
 
-    private readonly string _systemPrompt = @"
+    private readonly string _simpleSystemPrompt = @"
+        You are a cheerful intelligent assistant for the Cosmic Works Bike Company 
+        You answer as truthfully as possible.
+        ";
+
+    private readonly string _cosmicSystemPrompt = @"
         You are an intelligent assistant for the Cosmic Works Bike Company. 
         You are designed to provide helpful answers to user questions about
         product, product category, customer and sales order information provided in JSON format in the below context information.
 
         Instuctions:
-        When responding with any customer information always inlcude the customerId in your response.
+        When responding with any customer information always include the customerId in your response.
 
         Context information:";
 
     //System prompt to send with user prompts to instruct the model for summarization
-    private readonly string _summarizePrompt = @"
+    private readonly string _summarizeSystemPrompt = @"
         Summarize the text below in one or two words to use as a label in a button on a web page. Output words only. Summarize the text below here:" + Environment.NewLine;
 
-    private readonly string _sourceSelectionPrompt = @"
+    private readonly string _sourceSelectionSystemPrompt = @"
         Select which source of additional  information would be most usefull to answer the question provided from either
         product, customer and sales order information sources based on the prompt provided.
 
@@ -65,6 +71,7 @@ public class SemanticKernelService
 
         Text of the question is :";
 
+
     /// <summary>
     /// Creates a new instance of the Semantic Kernel.
     /// </summary>
@@ -77,7 +84,6 @@ public class SemanticKernelService
     /// This constructor will validate credentials and create a Semantic Kernel instance.
     /// </remarks>
     /// 
-
     ///public SemanticKernelService(string endpoint, string key, string completionDeploymentName, string embeddingDeploymentName, ILogger logger)
     public SemanticKernelService(OpenAi semanticKernelOptions, MongoDb mongoDbOptions, ILogger logger)
     {
@@ -97,8 +103,6 @@ public class SemanticKernelService
         _maxCompletionTokens = int.TryParse(semanticKernelOptions.MaxCompletionTokens, out _maxCompletionTokens) ? _maxCompletionTokens : 0;
         _maxConversationTokens = int.TryParse(semanticKernelOptions.MaxConversationTokens, out _maxConversationTokens) ? _maxConversationTokens : 0;
         _maxContextTokens = int.TryParse(semanticKernelOptions.MaxContextTokens, out _maxContextTokens) ? _maxContextTokens : 0;
-
-
 
         _logger = logger;
 
@@ -122,16 +126,107 @@ public class SemanticKernelService
                 .Build();
     }
 
+    public async Task<(string? response, int promptTokens, int responseTokens)>
+      GetSimpleChatCompletionAsync(string prompt)
+    {
 
-    public async Task<(string? response, int promptTokens, int responseTokens)> 
-        GetChatCompletionAsync(List<Message> conversationMessages, string RAGContext, string prompt)
+        ChatHistory chatHistory = new ChatHistory();
+
+        chatHistory.AddSystemMessage(_simpleSystemPrompt);
+        chatHistory.AddUserMessage(prompt);
+
+        try
+        {
+            OpenAIPromptExecutionSettings settings = new();
+            settings.Temperature = 0.2;
+            settings.MaxTokens = _maxCompletionTokens;
+            settings.TopP = 0.7;
+            settings.FrequencyPenalty = 0;
+            settings.PresencePenalty = -2;
+
+            var result = await kernel.GetRequiredService<IChatCompletionService>().GetChatMessageContentAsync(chatHistory, settings);
+
+            CompletionsUsage completionUsage = (CompletionsUsage)result.Metadata["Usage"];
+
+            string completion = result.Items[0].ToString();
+            int tokens = completionUsage.CompletionTokens;
+
+            return (
+             response: result.Items[0].ToString(),
+             promptTokens: completionUsage.PromptTokens,
+             responseTokens: completionUsage.CompletionTokens
+             );
+
+        }
+        catch (Exception ex)
+        {
+
+            string message = $"OpenAiService.GetChatCompletionAsync(): {ex.Message}";
+            _logger.LogError(message);
+            throw;
+
+        }
+    }
+
+    public async Task<(string? response, int promptTokens, int responseTokens)>
+        GetConversationChatCompletionAsync(List<Message> conversationMessages, string prompt)
+    {
+
+        ChatHistory chatHistory = new ChatHistory();
+
+        chatHistory.AddSystemMessage(_cosmicSystemPrompt);
+        foreach (var message in conversationMessages)
+        {
+            chatHistory.AddUserMessage(message.Prompt);
+            chatHistory.AddAssistantMessage(message.Completion);
+        }
+        chatHistory.AddUserMessage(prompt);
+
+
+        //_logger.Log(LogLevel.Information, $"Prompt and context {_systemPrompt} {RAGContext}");
+
+        try
+        {
+            OpenAIPromptExecutionSettings settings = new();
+            settings.Temperature = 0.2;
+            settings.MaxTokens = _maxCompletionTokens;
+            settings.TopP = 0.7;
+            settings.FrequencyPenalty = 0;
+            settings.PresencePenalty = -2;
+
+            var result = await kernel.GetRequiredService<IChatCompletionService>().GetChatMessageContentAsync(chatHistory, settings);
+
+            CompletionsUsage completionUsage = (CompletionsUsage)result.Metadata["Usage"];
+
+            string completion = result.Items[0].ToString();
+            int tokens = completionUsage.CompletionTokens;
+
+            return (
+             response: result.Items[0].ToString(),
+             promptTokens: completionUsage.PromptTokens,
+             responseTokens: completionUsage.CompletionTokens
+             );
+
+        }
+        catch (Exception ex)
+        {
+
+            string message = $"OpenAiService.GetChatCompletionAsync(): {ex.Message}";
+            _logger.LogError(message);
+            throw;
+
+        }
+    }
+
+    public async Task<(string? response, int promptTokens, int responseTokens)>
+        GetCosmicChatCompletionAsync(List<Message> conversationMessages, string RAGContext, string prompt)
     {
 
         ChatHistory chatHistory = new ChatHistory();
 
         //_logger.Log(LogLevel.Information, $"Prompt and context {_systemPrompt} {RAGContext}");
 
-        chatHistory.AddSystemMessage(_systemPrompt + RAGContext);
+        chatHistory.AddSystemMessage(_cosmicSystemPrompt + RAGContext);
         foreach (var message in conversationMessages)
         {
             chatHistory.AddUserMessage(message.Prompt);
@@ -177,29 +272,29 @@ public class SemanticKernelService
     {
         ChatHistory sourceChatHistory = new ChatHistory();
 
-        sourceChatHistory.AddSystemMessage(_sourceSelectionPrompt);
+        sourceChatHistory.AddSystemMessage(_sourceSelectionSystemPrompt);
         sourceChatHistory.AddUserMessage(prompt);
 
-     try
+        try
         {
 
             OpenAIPromptExecutionSettings settings = new();
 
-              settings.Temperature = 1.0;
-                    settings.MaxTokens = _maxCompletionTokens;
-                    settings.TopP = 1.0;
-                    settings.FrequencyPenalty = 0;
-                    settings.PresencePenalty = -2;
+            settings.Temperature = 1.0;
+            settings.MaxTokens = _maxCompletionTokens;
+            settings.TopP = 1.0;
+            settings.FrequencyPenalty = 0;
+            settings.PresencePenalty = -2;
 
-                    var result = await kernel.GetRequiredService<IChatCompletionService>().GetChatMessageContentAsync(sourceChatHistory, settings);
+            var result = await kernel.GetRequiredService<IChatCompletionService>().GetChatMessageContentAsync(sourceChatHistory, settings);
 
             CompletionsUsage completionUsage = (CompletionsUsage)result.Metadata["Usage"];
 
-                    return (
-                     response: result.Items[0].ToString(),
-                     promptTokens: completionUsage.PromptTokens,
-                     responseTokens: completionUsage.CompletionTokens
-                    );
+            return (
+             response: result.Items[0].ToString(),
+             promptTokens: completionUsage.PromptTokens,
+             responseTokens: completionUsage.CompletionTokens
+            );
 
         }
         catch (Exception ex)
@@ -209,7 +304,7 @@ public class SemanticKernelService
             _logger.LogError(message);
             throw;
 
-        }                        
+        }
 
     }
 
@@ -234,8 +329,6 @@ public class SemanticKernelService
     {
         await memoryStore.DeleteCollectionAsync("cache");
     }
-
-
 
     /// <summary>
     /// Generates embeddings from the deployed OpenAI embeddings model using Semantic Kernel.
@@ -283,7 +376,7 @@ public class SemanticKernelService
         //return await summarizePlugin.SummarizeConversationAsync(conversation, kernel);
 
         var skChatHistory = new ChatHistory();
-        skChatHistory.AddSystemMessage(_summarizePrompt);
+        skChatHistory.AddSystemMessage(_summarizeSystemPrompt);
         skChatHistory.AddUserMessage(conversation);
 
 
@@ -304,7 +397,7 @@ public class SemanticKernelService
         return summary;
     }
 
-    
+
 
     public int MaxCompletionTokens
     {

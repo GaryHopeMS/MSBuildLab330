@@ -3,6 +3,8 @@ using MongoDB.Driver;
 using Search.Options;
 using Search.Services;
 
+#pragma warning disable  CS8600, CS8602, CS8604 
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.RegisterConfiguration();

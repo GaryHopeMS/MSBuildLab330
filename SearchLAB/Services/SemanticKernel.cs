@@ -10,6 +10,7 @@ using Microsoft.SemanticKernel.Connectors.AzureCosmosDBMongoDB;
 using Search.Options;
 using Search.Models;
 
+#pragma warning disable  CS8600, CS8602, CS8604 
 #pragma warning disable SKEXP0010, SKEXP0001, SKEXP0020
 
 namespace Search.Services;
@@ -27,25 +28,27 @@ public class SemanticKernelService
     private readonly ILogger _logger;
 
     //Semantic Kernel
-    readonly Kernel kernel;
-    readonly AzureCosmosDBMongoDBMemoryStore memoryStore;
-    readonly ISemanticTextMemory memory;
 
-    private readonly string _systemPrompt = @"
+    private readonly string _simpleSystemPrompt = @"
+        You are cheerful an intelligent assistant for the Cosmic Works Bike Company 
+        You try to answer as truthfully as possible
+        ";
+
+    private readonly string _cosmicSystemPrompt = @"
         You are an intelligent assistant for the Cosmic Works Bike Company. 
         You are designed to provide helpful answers to user questions about
         product, product category, customer and sales order information provided in JSON format in the below context information.
 
         Instuctions:
-        When responding with any customer information always inlcude the customerId in your response.
+        When responding with any customer information always include the customerId in your response.
 
         Context information:";
 
     //System prompt to send with user prompts to instruct the model for summarization
-    private readonly string _summarizePrompt = @"
+    private readonly string _summarizeSystemPrompt = @"
         Summarize the text below in one or two words to use as a label in a button on a web page. Output words only. Summarize the text below here:" + Environment.NewLine;
 
-    private readonly string _sourceSelectionPrompt = @"
+    private readonly string _sourceSelectionSystemPrompt = @"
         Select which source of additional  information would be most usefull to answer the question provided from either
         product, customer and sales order information sources based on the prompt provided.
 
@@ -65,6 +68,7 @@ public class SemanticKernelService
 
         Text of the question is :";
 
+
     /// <summary>
     /// Creates a new instance of the Semantic Kernel.
     /// </summary>
@@ -77,7 +81,6 @@ public class SemanticKernelService
     /// This constructor will validate credentials and create a Semantic Kernel instance.
     /// </remarks>
     /// 
-
     ///public SemanticKernelService(string endpoint, string key, string completionDeploymentName, string embeddingDeploymentName, ILogger logger)
     public SemanticKernelService(OpenAi semanticKernelOptions, MongoDb mongoDbOptions, ILogger logger)
     {
@@ -98,68 +101,28 @@ public class SemanticKernelService
         _maxConversationTokens = int.TryParse(semanticKernelOptions.MaxConversationTokens, out _maxConversationTokens) ? _maxConversationTokens : 0;
         _maxContextTokens = int.TryParse(semanticKernelOptions.MaxContextTokens, out _maxContextTokens) ? _maxContextTokens : 0;
 
-
-
         _logger = logger;
 
         // Initialize the Semantic Kernel
-        var kernelBuilder = Kernel.CreateBuilder();
-        kernelBuilder.AddAzureOpenAIChatCompletion(semanticKernelOptions.CompletionsDeployment, semanticKernelOptions.Endpoint, semanticKernelOptions.Key);
-        kernelBuilder.AddAzureOpenAITextEmbeddingGeneration(semanticKernelOptions.EmbeddingsDeployment, semanticKernelOptions.Endpoint, semanticKernelOptions.Key);
-        kernel = kernelBuilder.Build();
 
-        AzureCosmosDBMongoDBConfig memoryConfig = new(1536);
-        memoryConfig.Kind = AzureCosmosDBVectorSearchType.VectorHNSW;
-
-        memoryStore = new(mongoDbOptions.Connection, mongoDbOptions.DatabaseName, memoryConfig);
-
-        memory = new MemoryBuilder()
-                .WithAzureOpenAITextEmbeddingGeneration(
-                    semanticKernelOptions.EmbeddingsDeployment,
-                    semanticKernelOptions.Endpoint,
-                    semanticKernelOptions.Key)
-                .WithMemoryStore(memoryStore)
-                .Build();
     }
 
-
-    public async Task<(string? response, int promptTokens, int responseTokens)> 
-        GetChatCompletionAsync(List<Message> conversationMessages, string RAGContext, string prompt)
+    public async Task<(string? response, int promptTokens, int responseTokens)>
+      GetChatCompletionAsync(string prompt)
     {
-
-        ChatHistory chatHistory = new ChatHistory();
-
-        //_logger.Log(LogLevel.Information, $"Prompt and context {_systemPrompt} {RAGContext}");
-
-        chatHistory.AddSystemMessage(_systemPrompt + RAGContext);
-        foreach (var message in conversationMessages)
-        {
-            chatHistory.AddUserMessage(message.Prompt);
-            chatHistory.AddAssistantMessage(message.Completion);
-        }
-        chatHistory.AddUserMessage(prompt);
-
 
         try
         {
-            OpenAIPromptExecutionSettings settings = new();
-            settings.Temperature = 0.2;
-            settings.MaxTokens = _maxCompletionTokens;
-            settings.TopP = 0.7;
-            settings.FrequencyPenalty = 0;
-            settings.PresencePenalty = -2;
+            //Call to Azure OpenAI to get response and tokens used 
 
-            var result = await kernel.GetRequiredService<IChatCompletionService>().GetChatMessageContentAsync(chatHistory, settings);
-
-            CompletionsUsage completionUsage = (CompletionsUsage)result.Metadata["Usage"];
-
-            string completion = result.Items[0].ToString();
-            int tokens = completionUsage.CompletionTokens;
+            var response = ""; 
+            var promptTokens = 0;
+            var completionTokens = 0;
 
             return (
-             response: result.Items[0].ToString(),
-             promptTokens: completionUsage.PromptTokens,
-             responseTokens: completionUsage.CompletionTokens
+             response: response,
+             promptTokens: promptTokens,
+             responseTokens: completionTokens
              );
 
         }
@@ -173,76 +136,6 @@ public class SemanticKernelService
         }
     }
 
-    public async Task<(string? response, int promptTokens, int responseTokens)> GetPreferredSourceAsync(string prompt)
-    {
-        ChatHistory sourceChatHistory = new ChatHistory();
-
-        sourceChatHistory.AddSystemMessage(_sourceSelectionPrompt);
-        sourceChatHistory.AddUserMessage(prompt);
-
-     try
-        {
-
-            OpenAIPromptExecutionSettings settings = new();
-
-              settings.Temperature = 1.0;
-                    settings.MaxTokens = _maxCompletionTokens;
-                    settings.TopP = 1.0;
-                    settings.FrequencyPenalty = 0;
-                    settings.PresencePenalty = -2;
-
-                    var result = await kernel.GetRequiredService<IChatCompletionService>().GetChatMessageContentAsync(sourceChatHistory, settings);
-
-            CompletionsUsage completionUsage = (CompletionsUsage)result.Metadata["Usage"];
-
-                    return (
-                     response: result.Items[0].ToString(),
-                     promptTokens: completionUsage.PromptTokens,
-                     responseTokens: completionUsage.CompletionTokens
-                    );
-
-        }
-        catch (Exception ex)
-        {
-
-            string message = $"OpenAiService.GetChatCompletionAsync(): {ex.Message}";
-            _logger.LogError(message);
-            throw;
-
-        }                        
-
-    }
-
-    public async Task AddCachedMemory(string promptText, string completionText)
-    {
-        await memory.SaveInformationAsync("cache", promptText, Guid.NewGuid().ToString(), additionalMetadata: completionText);
-    }
-
-    public async Task<string> CheckCache(string userPrompt)
-    {
-        string cacheRestult = string.Empty;
-        var memoryResults = memory.SearchAsync("cache", userPrompt, limit: 1, minRelevanceScore: 0.95);
-        await foreach (var memoryResult in memoryResults)
-        {
-            cacheRestult = memoryResult.Metadata.AdditionalMetadata.ToString();
-            break;
-        }
-        return cacheRestult;
-    }
-
-    public async Task ClearCacheAsync()
-    {
-        await memoryStore.DeleteCollectionAsync("cache");
-    }
-
-
-
-    /// <summary>
-    /// Generates embeddings from the deployed OpenAI embeddings model using Semantic Kernel.
-    /// </summary>
-    /// <param name="input">Text to send to OpenAI.</param>
-    /// <returns>Array of vectors from the OpenAI embedding model deployment.</returns>
-
     public async Task<(float[] vectors, int embeddingsTokens)> GetEmbeddingsAsync(string input)
     {
 
@@ -251,13 +144,7 @@ public class SemanticKernelService
         try
         {
 
-            var embeddings = await kernel.GetRequiredService<ITextEmbeddingGenerationService>().GenerateEmbeddingAsync(input);
-
-            float[] embeddingsArray = embeddings.ToArray();
-
-
-            // ToDo: how do I get the tokens 
-            // responseTokens = embeddings.Usage.TotalTokens;
+            float[] embeddingsArray = new float[1536];
             responseTokens = 0;
 
             return (embeddingsArray, responseTokens);
@@ -270,41 +157,6 @@ public class SemanticKernelService
 
         }
     }
-
-
-    /// <summary>
-    /// Sends the existing conversation to the Semantic Kernel and returns a two word summary.
-    /// </summary>
-    /// <param name="sessionId">Chat session identifier for the current conversation.</param>
-    /// <param name="conversationText">conversation history to send to Semantic Kernel.</param>
-    /// <returns>Summarization response from the OpenAI completion model deployment.</returns>
-    public async Task<string> SummarizeConversationAsync(string conversation)
-    {
-        //return await summarizePlugin.SummarizeConversationAsync(conversation, kernel);
-
-        var skChatHistory = new ChatHistory();
-        skChatHistory.AddSystemMessage(_summarizePrompt);
-        skChatHistory.AddUserMessage(conversation);
-
-
-        OpenAIPromptExecutionSettings settings = new();
-
-        // settings.ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions;
-        settings.Temperature = 0.0;
-        settings.MaxTokens = 200;
-        settings.TopP = 1.0;
-        settings.FrequencyPenalty = -2;
-        settings.PresencePenalty = -2;
-
-        var result = await kernel.GetRequiredService<IChatCompletionService>().GetChatMessageContentAsync(skChatHistory, settings);
-
-        string completion = result.Items[0].ToString()!;
-        string summary = Regex.Replace(completion, @"[^a-zA-Z0-9\s]", "");
-
-        return summary;
-    }
-
-    
 
     public int MaxCompletionTokens
     {
