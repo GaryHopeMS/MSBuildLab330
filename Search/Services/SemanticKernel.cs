@@ -145,16 +145,16 @@ public class SemanticKernelService
             settings.PresencePenalty = -2;
 
             var result = await kernel.GetRequiredService<IChatCompletionService>().GetChatMessageContentAsync(chatHistory, settings);
+            var response = result.Items[0].ToString();
 
             CompletionsUsage completionUsage = (CompletionsUsage)result.Metadata["Usage"];
-
-            string completion = result.Items[0].ToString();
-            int tokens = completionUsage.CompletionTokens;
+            var promptTokens = completionUsage.PromptTokens;
+            var completionTokens = completionUsage.CompletionTokens;
 
             return (
-             response: result.Items[0].ToString(),
-             promptTokens: completionUsage.PromptTokens,
-             responseTokens: completionUsage.CompletionTokens
+             response: response,
+             promptTokens: promptTokens,
+             responseTokens: completionTokens
              );
 
         }
@@ -195,18 +195,17 @@ public class SemanticKernelService
             settings.PresencePenalty = -2;
 
             var result = await kernel.GetRequiredService<IChatCompletionService>().GetChatMessageContentAsync(chatHistory, settings);
+            var response = result.Items[0].ToString();
 
             CompletionsUsage completionUsage = (CompletionsUsage)result.Metadata["Usage"];
-
-            string completion = result.Items[0].ToString();
-            int tokens = completionUsage.CompletionTokens;
+            var promptTokens = completionUsage.PromptTokens;
+            var completionTokens = completionUsage.CompletionTokens;
 
             return (
-             response: result.Items[0].ToString(),
-             promptTokens: completionUsage.PromptTokens,
-             responseTokens: completionUsage.CompletionTokens
+             response: response,
+             promptTokens: promptTokens,
+             responseTokens: completionTokens
              );
-
         }
         catch (Exception ex)
         {
@@ -245,16 +244,16 @@ public class SemanticKernelService
             settings.PresencePenalty = -2;
 
             var result = await kernel.GetRequiredService<IChatCompletionService>().GetChatMessageContentAsync(chatHistory, settings);
+            var response = result.Items[0].ToString();
 
             CompletionsUsage completionUsage = (CompletionsUsage)result.Metadata["Usage"];
-
-            string completion = result.Items[0].ToString();
-            int tokens = completionUsage.CompletionTokens;
+            var promptTokens = completionUsage.PromptTokens;
+            var completionTokens = completionUsage.CompletionTokens;
 
             return (
-             response: result.Items[0].ToString(),
-             promptTokens: completionUsage.PromptTokens,
-             responseTokens: completionUsage.CompletionTokens
+             response: response,
+             promptTokens: promptTokens,
+             responseTokens: completionTokens
              );
 
         }
@@ -335,7 +334,6 @@ public class SemanticKernelService
     /// </summary>
     /// <param name="input">Text to send to OpenAI.</param>
     /// <returns>Array of vectors from the OpenAI embedding model deployment.</returns>
-
     public async Task<(float[] vectors, int embeddingsTokens)> GetEmbeddingsAsync(string input)
     {
 
@@ -344,13 +342,7 @@ public class SemanticKernelService
         try
         {
 
-            var embeddings = await kernel.GetRequiredService<ITextEmbeddingGenerationService>().GenerateEmbeddingAsync(input);
-
-            float[] embeddingsArray = embeddings.ToArray();
-
-
-            // ToDo: how do I get the tokens 
-            // responseTokens = embeddings.Usage.TotalTokens;
+            float[] embeddingsArray = new float[1536];
             responseTokens = 0;
 
             return (embeddingsArray, responseTokens);
@@ -363,6 +355,7 @@ public class SemanticKernelService
 
         }
     }
+   
 
 
     /// <summary>
