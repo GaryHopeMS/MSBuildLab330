@@ -95,29 +95,20 @@ public class ChatService
         return conversation;
     }
 
-    private List<Message> GetConversationContext(string sessionId, int maxConverstionTokens)
+    private List<Message> GetConversationContext(
+        string sessionId, int maxConverstionTokens)
     {
-
+        // conversationMessages contains an ordered list of all conversation messsages for a session
         int index = _sessions.FindIndex(s => s.SessionId == sessionId);
         List<Message> conversationMessages = _sessions[index]
             .Messages
             .OrderByDescending(m => m.TimeStamp)
             .ToList();
-       
-        List<Message> trimmedMessages = new List<Message>();   
 
-        int totalTokens = 0;
-        int totalMessages = 0;
+        List<Message> trimmedMessages = new List<Message>();
 
-        foreach ( var message in conversationMessages)
-        {
-            var messageTokens = tokenizer.CountTokens(message.Prompt) + tokenizer.CountTokens(message.Completion);
-            if ((totalTokens+ messageTokens)> maxConverstionTokens)
-                break;
-            totalMessages++;
-            trimmedMessages.Add(message);
-        }
-        // _logger.LogInformation($"converstion tokens : {totalTokens} in {totalMessages} messages");
+        //<insert code here>
+
         return trimmedMessages.Reverse<Message>().ToList();
 
     }

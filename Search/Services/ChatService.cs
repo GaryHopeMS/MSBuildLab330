@@ -73,6 +73,7 @@ public class ChatService
                 }
 
                 List<Message> conversationContext = GetConversationContext(sessionId,_semanticKernelService.MaxConversationTokens);
+               
                 var conversationContextString = string
                     .Join(Environment.NewLine,
                         conversationContext.Select(m => m.Prompt + Environment.NewLine + m.Completion)
@@ -174,7 +175,7 @@ public class ChatService
             totalMessages++;
             trimmedMessages.Add(message);
         }
-        // _logger.LogInformation($"converstion tokens : {totalTokens} in {totalMessages} messages");
+
         return trimmedMessages.Reverse<Message>().ToList();
 
     }
