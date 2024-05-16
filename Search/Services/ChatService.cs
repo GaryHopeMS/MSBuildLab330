@@ -36,13 +36,14 @@ public class ChatService
         try
         {
             ArgumentNullException.ThrowIfNull(sessionId);
-
+    
             bool cacheHit = false;
-            string completion = string.Empty;
             string retrievedRAGContext = "";
+            string collectionName = "none"; // default source collection context
+
+            string completion = string.Empty;
             int promptTokens = 0;
             int completionTokens = 0;
-            string collectionName = "none"; // default source collection context
 
             if (selectedCacheEnable == "yes")
             {

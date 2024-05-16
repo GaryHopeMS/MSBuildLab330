@@ -41,14 +41,14 @@ public class ChatService
             int completionTokens = 0;
             string collectionName = "none";
 
-            string completion = string.Empty;
 
             ///// This is where the magic will happen        
-            // For now I a good at introducing myself.
-
+            
+            // for now I am only good at introducing myself.
+            string completion = string.Empty;
             completion = "I am a really friendly chat bot and super happy to meet you" +
-                    Environment.NewLine + "but I cant realy do anything for you";
-            //
+                    Environment.NewLine + "however I cant realy do anything for you";
+            
 
             //Create message with all prompt, response and meta data
             Message message = new Message(
@@ -202,7 +202,8 @@ public class ChatService
     {
         ArgumentNullException.ThrowIfNull(sessionId);
 
-        string response = $"Chat {sessionId}";
+        //
+        string response = $"Chat {sessionId.Substring(sessionId.Length-12)}";
 
         await RenameChatSessionAsync(sessionId, response);
 

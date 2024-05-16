@@ -28,6 +28,9 @@ public class SemanticKernelService
     private readonly ILogger _logger;
 
     //Semantic Kernel
+    private readonly Kernel kernel;
+    private readonly AzureCosmosDBMongoDBMemoryStore memoryStore;
+    private readonly ISemanticTextMemory memory;
 
     private readonly string _simpleSystemPrompt = @"
         You are cheerful an intelligent assistant for the Cosmic Works Bike Company 
@@ -104,7 +107,23 @@ public class SemanticKernelService
         _logger = logger;
 
         // Initialize the Semantic Kernel
+        var kernelBuilder = Kernel.CreateBuilder();
+        kernelBuilder.AddAzureOpenAIChatCompletion(semanticKernelOptions.CompletionsDeployment, semanticKernelOptions.Endpoint, semanticKernelOptions.Key);
+        kernelBuilder.AddAzureOpenAITextEmbeddingGeneration(semanticKernelOptions.EmbeddingsDeployment, semanticKernelOptions.Endpoint, semanticKernelOptions.Key);
+        kernel = kernelBuilder.Build();
 
+        AzureCosmosDBMongoDBConfig memoryConfig = new(1536);
+        memoryConfig.Kind = AzureCosmosDBVectorSearchType.VectorHNSW;
+
+        memoryStore = new(mongoDbOptions.Connection, mongoDbOptions.DatabaseName, memoryConfig);
+
+        memory = new MemoryBuilder()
+                .WithAzureOpenAITextEmbeddingGeneration(
+                    semanticKernelOptions.EmbeddingsDeployment,
+                    semanticKernelOptions.Endpoint,
+                    semanticKernelOptions.Key)
+                .WithMemoryStore(memoryStore)
+                .Build();
     }
 
     public async Task<(string? response, int promptTokens, int responseTokens)>
