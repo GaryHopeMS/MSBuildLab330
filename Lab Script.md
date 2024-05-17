@@ -784,8 +784,16 @@ By default your chat should stil function the way it used and provide and suppor
 
 !IMAGE[LAB330ScreenShot7.png](instructions261180/LAB330ScreenShot7.png)
 
-12. Create a new chat session, leaving the data source set to none lets ask it something about the products that Cosmic Works sells. `Mountain bike are available`
+12. Create a new chat session, set the data soure to **products** and lets ask it something about the products that Cosmic Works sells. `What mountain bikes are available?`
 
-`List the mountain bikes available`
+!IMAGE[LAB330ScreenShot8.png](instructions261180/LAB330ScreenShot8.png)
+
+12. Create a new chat session, set the data soure to **customers** and lets ask it something about about a customer, maybe she just introduced herself and I want to send her an email `What is Nancy Hirota's email address` and lets follow that up with a questions that requires conversational context `what details do you have for her`
+
+!IMAGE[LAB330ScreenShot9.png](instructions261180/LAB330ScreenShot9.png)
+
+We have met one of our key objective we have an intelegent AI chat assistant that can leverage our data to provide contextualy aware answers.
+
+Now it's not perfect, we still need to tell it which data sources to use and we can tackle that challenge in the future.
 
 
