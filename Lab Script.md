@@ -1,6 +1,6 @@
 ##Building AI Apps with Azure Cosmos DB for MongoDB, Azure OpenAI and the Semantic Kernel
 
-## Log In to the Virtual Machine.
+## Virtual Machine Login
 
 **Username**: +++@lab.VirtualMachine(Win11Base23B-W11-22H2).Username+++
 
@@ -8,36 +8,45 @@
 
 ## Lab Introduction
 
-In this hands-on lab, we will show you how to design and build an application using Azure Cosmos DB for MongoDB using its new vector search capabilities combined with Azure OpenAI service for creating a new contextually rich Generative AI chat experiences based on the data you already have. 
-This hands-on lab will provide practical insights into generating embeddings on user input, generating responses from an LLM, storing chat history for conversational context and provide an introduction to using Semantic Kerneland building a semantic cache to enhance performance leveraging the newly release Semantic Kernal Connector for Azure Cosmos DB for MongoDB.
-The skills in this lab will give you a solid foundation for creating your own AI copilot using the retrieval augmented generation (RAG) architecture.
+In this hands-on lab we will show you how to design and build an application using Azure Cosmos DB for MongoDB. You will use Cosmos DB's new vector search capabilities combined with Azure OpenAI service to create a new contextually rich Generative AI chat experience based on the data you already have.
+
+This hands-on lab will provide practical guidance on
+on how to create a RAG pattern application over transactional data, generating vectors and completions with Azure OpenAI Service, connect to multiple vectorized data sources, manage chat history and enhance performance with a semantic cache all orchestrated using Semantic Kernel. 
+
+This session will equip you with the knowledge you need to elevate your AI application development skills.
 
 
 ## What are we doing?
 
 This lab guides you through the steps to implement Generative AI capabilities in an ASP.NET Core Blazor application utilizing the powerful vector search capabilities of Azure Cosmos DB for MongoDB and the power of Azure OpenAI LLMs. 
 These are the main tasks you will accomplish in this lab.
-1. Create a basic chat experience, fowarding user prompts to Azure OpenAI and returning the response to the user all the while storing the chat history.
+1. Create a basic chat experience, forwarding user prompts to Azure OpenAI and surfacing the responses to the user interface, all the while storing this as chat history.
 1. Implement and test a chat history feature to allow for more natural conversational interactions using the chat history for context.
-1. Extend the functionality of your chat application based on data you already have using Cosmo DB vector search and using the retrieved context with a RAG application architecture.
+1. Extend the functionality of your chat application based on the data you already have using Cosmos DB for MongoDB vector search capabilities to use this retrieved context as part of the RAG architecture pattern.
 1.	(Optional) Implement and test a simple semantic cache for improved performance using the Semantic Kernel Connector for Cosmos DB for MongoDB.
-1.	(Optional) Extend the chat application with some simple intelligence to select the appropriate data source for context retrieval.
-1.	(Optional) Update application the application user experiance to prvide summarized session navigation.
+1.	(Optional) Extend the chat application with some simple AI intelligence to select the appropriate data source for context retrieval.
+1.	(Optional) Update the application user experience to provide summarized session navigation.
 
 # Getting up and running 
-In this lab we will be working on updating a pre-existing .NET AI assistant solution consisting of a single ASP.NET Blazor project. Whilst this project already provides a large amount of boiler plate code typical of this type of application, including a simple user interface, you will be building out the core internals of this project to transform it into a fully functional AI assistant using Azure Open AI and Cosmos DB for MongoDB services.
+In this lab you will be working on updating a pre-existing .NET AI assistant solution consisting of a single ASP.NET Blazor project. Whilst this project already provides a large amount of the boiler plate code typical of this type of application, you will still be building the core internals of this project to transform it into a fully functional AI assistant, using Azure Open AI and Cosmos DB for MongoDB services.
 
-As part of the deployment of this lab environment we have already deployed the two Azure services you will need, created a local code repository, created the database and collections containing the data you will need and  preloaded the appsettings file with the required settings and connection strings all in the interests of saving you time. All these details are available this labs github repository.
+To save you time in this lab environment we have already:
+1. Deployed the two Azure services you will need. 
+1. Created a local code repository.
+1. Created the database and collections with sample data.
+1. Pre-loaded the appsettings file with the required settings and connection strings.
 
-###Exercise: Up and running
-So lets have a quick look at the projects code and get started.
-1.	Open **Visual Studio Code**, there is link on the desktop or you can find it in the start menu. 
+All these details are available in this labs' github repository.
+
+###Getting going
+So, let's have a quick look at the projects code and get started.
+1.	Open **Visual Studio Code**, there is a link on the desktop or you can find it in the start menu. 
 1.	Now open the project folder at **C:\Code\BuildLab330\SearchLab**, this is the app we are going to be working on. 
 
-In a .NET application, it's common to use the configuration providers to inject new settings into your application. For this application,we will use the **appsettings.json** file to provide the most current values for Azure Cosmos DB and Azure OpenAI endpoints and keys.
+In a .NET application, it's common to use the configuration providers to inject new settings into your application. For this application we will use the **appsettings.json** file to provide the needed configuration values for Azure Cosmos DB and Azure OpenAI endpoints and keys.
 
-4.	In the root of the project foller, open the file named **appsettings.json**.
-4.	It should look similar to this, you may want to come back later and tweak some of these settings:
+4.	In the root of the project folder, open the file named **appsettings.json**.
+4.	It should look similar to the following:
 
 ```json
 {
@@ -68,11 +77,13 @@ In a .NET application, it's common to use the configuration providers to inject 
   }
 }
 ```
-Here you can see in the **OpenAI section** of the file we have an endpoint, model deployments and a key for your Azure Open AI service along with a number of setting which we will use to control the behaviour of our app – more on these later. 
+Here you can see in the **OpenAI section** of the file that we have an endpoint, model deployments and a key for your Azure Open AI service, along with some additional settings which we will use to control the behavior of our app (more on these later). 
 
-In the **MongoDB section** you will see the prepopulated connection string for the Cosmos DB for MongoDB, the database and collection names, and a couple of setting that allow us to control some the database access behavior – again more on these later.
+In the **MongoDB section** you will see the prepopulated connection string for the Cosmos DB for MongoDB service, the database name, collection names and a couple of settings which will allow us to control some of the database access behavior.
 
-Its now time to make sure the starter application works as expected. In this step we build the application to verify that there's no issues before we get started.
+You may want to come back later and tweak some of these settings
+
+Its now time to make sure the starter application template works as expected. In this step we build the application to verify that there are no issues before we make any modifications.
 Let’s build and run the application.
 4.	Within **Visual Studio Code**, open a new terminal.
 !IMAGE[LAB330ScreenShot0.png](instructions261180/LAB330ScreenShot0.png)
@@ -83,32 +94,35 @@ dotnet build
 ```
 6.	You should see a **Build succeeded** message and **0 Error(s)** when it completes.
 
-You can expect to get a couple of warnings (yellow), these can be safely ignored for the demo code in this lab as we still need to complete some of it. 
+You can expect to get a couple of warnings (yellow), these can be safely ignored for the demo code in this lab as you still need to complete some of it. 
 
 7.	Run the application using the **dotnet run** command.
 ```bash
 dotnet run
 ```
-The out put should look something similar to:
+The output should look something similar to:
 !IMAGE[LAB330ScreenShot0.1.png](instructions261180/LAB330ScreenShot0.1.png)
-8.	You can ctrl+ click on the URL that is part of  **Now listening on http://localhost:8100** message you should see in the terminal window to open a browser and connect to our web application which is now running locally. Alternativly manualy open the browser and navigate to http://localhost:8100
+8.	You can **ctrl+click** on the URL that is part of **Now listening on http://localhost:8100** message you should see in the terminal window to open a browser and connect to the web application which is now running locally. Alternatively open the browser and navigate to http://localhost:8100
 
 You now have the start of your new AI assistant up and running and it should look something like this:
 
 !IMAGE[LAB330ScreenShot1.png](instructions261180/LAB330ScreenShot1.png)
 
 
-####Let’s see what the bot can (or can not) do:
+####Let’s see what the bot can (or can't) do:
 9.	Click the **“Create New Chat”** button, this will start a new chat session.
 10.	Now say hi by typing `Hi there` in the message box and clicking the send button.
-The chat bot will reply with the a brief introduction: “I am a really friendly chat bot and super happy to meet you…”
+The chat bot will reply with a brief introduction: “I am a really friendly chat bot and super happy to meet you…”
 
-No matter what you ask of it, its going to respond the same way. It’s now our job to fix that. 
+No matter what you ask of it, it is going to respond the same way. 
+It’s now your job to fix that. 
 !IMAGE[LAB330ScreenShot2.png](instructions261180/LAB330ScreenShot2.png)
 
-11. Close the browser and shut down the service by pressing ctrl-C in the terminal window.
+11. Close the browser and shut down the service by pressing Ctrl+C in the terminal window.
 
-We are now ready to start build. Let's connect our application to the Azure Open AI Service to generate more useful responses from an LLM and convert our chat bot into an AI assistant.
+We are now ready to start building. 
+
+Let's connect our application to the Azure Open AI Service to generate more useful responses from an LLM and convert our chat bot into an AI assistant.
 
 ===
 # Making our AI assistant chat
