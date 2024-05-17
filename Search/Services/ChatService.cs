@@ -38,7 +38,7 @@ public class ChatService
             ArgumentNullException.ThrowIfNull(sessionId);
     
             bool cacheHit = false;
-            string retrievedRAGContext = "";
+ 
             string collectionName = "none"; // default source collection context
 
             string completion = string.Empty;
@@ -53,12 +53,25 @@ public class ChatService
 
             if (!cacheHit)
             {
+
+                List<Message> conversationContext = GetConversationContext(sessionId,_semanticKernelService.MaxConversationTokens);
+               
+                var conversationContextString = string
+                    .Join(Environment.NewLine,
+                        conversationContext.Select(m => m.Prompt + Environment.NewLine + m.Completion)
+                        .ToArray());
+
+                (float[] promptConversationVectors, int promptConversationTokens)
+                    = await _semanticKernelService.GetEmbeddingsAsync(conversationContextString + Environment.NewLine + prompt);
+
                 switch (selectedCollectionName)
                 {
                     case "<none>":
+                        collectionName = "none";
                         break;
 
                     case "<auto>":
+                        collectionName = "none";
                         (string sourceCompletionText, int sourcePromptTokens, int sourceCompletionTokens)
                                 = await _semanticKernelService.GetPreferredSourceAsync(prompt);
 
@@ -72,16 +85,7 @@ public class ChatService
                         break;
                 }
 
-                List<Message> conversationContext = GetConversationContext(sessionId,_semanticKernelService.MaxConversationTokens);
-               
-                var conversationContextString = string
-                    .Join(Environment.NewLine,
-                        conversationContext.Select(m => m.Prompt + Environment.NewLine + m.Completion)
-                        .ToArray());
-
-                (float[] promptConversationVectors, int promptConversationTokens)
-                    = await _semanticKernelService.GetEmbeddingsAsync(conversationContextString + Environment.NewLine + prompt);
-
+                string retrievedRAGContext = "";
                 if (collectionName != "none")
                     retrievedRAGContext
                              = await _mongoDbService.VectorSearchAsync(collectionName, "embedding",
