@@ -129,25 +129,25 @@ Let's connect our application to the Azure Open AI Service to generate more usef
 
 Our application is composed of the following three services 
 - The **ChatService** - this service is responsible for managing user interaction, chat logic and passing requests to the other services where appropriate.
-- The **SemanticKernel** service - this service is responsible for managing the interaction between the Chat Service and the backend Azure OpenAI Service LLM. As a highly extensible SDK Semantic Kernel works with various different models by way of connectors and provides you with rich capabilities that allow you to build fully automated AI agents that that can call your application code and automate automate your business processes. We will just be touching on the basics capabilities of semantic kernel in this lab.  
-- The **MonogDBService** service -- this services provides access to the data stored in the Cosmos DB for MongoDB database. The database will be used to store and retreive our chat history and provide aditional context to our chat based on the Cosmic Works retail dataset that it contains.
+- The **SemanticKernel** service - this service is responsible for managing the interaction between the Chat Service and the backend Azure OpenAI Service LLM. As a highly extensible SDK Semantic Kernel works with various different models by way of connectors and provides you with rich capabilities that allow you to build fully automated AI agents that can call your application code and automate automate your business processes. We will just be touching on the basic capabilities of semantic kernel in this lab.  
+- The **MonogDBService** service - this services provides access to the data stored in the Cosmos DB for MongoDB database. The database will be used to store and retreive the chat history and provide aditional context to the chat based on the sample Cosmic Works retail dataset that it contains.
 
 
 First things first, we need to have a look at the primary method that handles the main prompt response loop of our application. This is the method that is invoked when a user submits a prompt to the UI. 
 
 1.	Open the **Services/ChatService.cs** file.
-2.	Locate the **GetChatCompletionAsync()** method and review the code. 
+2.	Locate the **GetChatCompletionAsync** method and review the code. 
 
-You will note the following about the GetChatCompletionAsync() method:
+You will note the following about the GetChatCompletionAsync method:
 
-- It take parameters that receive the sessionId and prompt from the user 
-- It generates completion to send back to the user.
+- It takes parameters for the sessionId and prompt from the user interface 
+- It generates responses (completions) to send back to the user.
 - It stores both the prompt and completion in a new instance of the Message class.
-- It stores this message in the database and updates the user interface by calling  AddPromptCompletionMessagesAsync(sessionId, message);
+- It stores this message in the database and updates the user interface by calling  AddPromptCompletionMessagesAsync method.
 
-The core of how our application responds to interaction is the prompt, completion along with the sessionId and the method used to store these key pieces of informtion in the database and make them available to the UI. 
+The applications primary behaviour is driven by the *prompt*, *completion* and *sessionId*. The AddPromptCompletionMessagesAsync method is used to store these key pieces of information in the database and make them available to the UI. 
 
-We use will use the other parameters passed tothe method and store additional information in our message later on as we add aditional functionaly.
+You will use the other parameters passed to the method and store additional information in the message as this lab develops.
 
 And as you can see from this part of the code:
 
@@ -164,20 +164,20 @@ It is not particularly useful at this point.
 
 ## Connecting to Azure Open AI with Semantic Kernel
 
-Let's implement the Semantic Kernel service so we can generate more interesting responses from our chosen LLM. 
+Let us implement the Semantic Kernel service so we can generate more interesting responses from our chosen LLM. 
 
-The first method we need to implement is to generate responses to our chat prompts, as previously mentioned these responses are called completions. 
-We will implement the method that calls Azure OpenAI Service using the Semantic Kernel model plugin for Azure OpenAI. This will allow us to generate a chat completion from one of the deployed LLMs for a given user prompt from a user. The method will also need to return the generated response text as well as the number of tokens for the prompt and the response (completion). 
+The first method we need to implement is to generate responses to our chat prompts, these responses are called completions. 
+You will implement the method that calls Azure OpenAI Service using the Semantic Kernel model plugin for Azure OpenAI. This will allow the application to generate a chat completion from one of the deployed LLMs for a given user prompt. The method will need to return the generated response text as well as the number of tokens used for the prompt and the response (completion). 
 
 ### What are tokens and why do they matter
-Large language model tokens refer to the basic units of text processed by the model. These tokens can represent words, parts of words, or even punctuation marks, depending on the tokenization method used in that specific model. 
+Large language model tokens refer to the basic units of text processed by the model. These tokens can represent words, parts of words or even punctuation marks, depending on the tokenization method used in that specific model. 
 Tokenization is the process of breaking down text into these manageable pieces that allows the model to handle a wide variety of vocabulary and linguistic structures efficiently. In training the models learn to predict the next token in a sequence, given the previous tokens, which enables it to generate coherent and contextually appropriate text. This approach forms the backbone and magic of how models understand and generate human-like text, making tokenization a crucial aspect of natural language processing in AI. 
-Tokens are used to meter, provision, and rate limit access to large language models in order manage and optimize resource allocation, ensure fair usage, and control costs. Given this a token is not just a unit of text (on average about 4 characters) but serves as an abstraction of computational resources for processing of an input text or generating output text.
+Tokens are used to meter, provision and rate limit access to large language models in order to manage and optimize resource allocation, ensure fair usage and control costs. Given this, a token is not just a unit of text (on average about 4 characters) but serves as a measure of the computational resources needed for processing of an input text or generating output text.
 
 ### Implementing GetChatCompletionAsync()
 
 1. Open the **Services/SemanticKernel.cs** file.
-2. Inspecting this class you will see that there is already code to provide the service with a initilized local instance of the Sematic Kernel (you dont need to change anything in this step)
+2. On inspecting this class, you will see that there is already code providing the service with an initilized local instance of the Sematic Kernel (you dont need to change anything in this step)
 
 ```csharp
    //Semantic Kernel
@@ -196,9 +196,9 @@ Tokens are used to meter, provision, and rate limit access to large language mod
         semanticKernelOptions.Key);
     kernel = kernelBuilder.Build(); 
 ```
-This code builds and initializes the kernel with the Azure OpenAI Chat Compeltion Model and Azure OpenAI Text Embedding Model connectors added to the build pipeline. Note that we are providing the connectors with the Endpoint,Key and Deployment from our configuration, so they have the  information needed to connect to the service.
+This code builds and initializes the kernel with the Azure OpenAI Chat Completion Model and Azure OpenAI Text Embedding Model connectors added to the build pipeline. Note that we are providing the connectors with the Endpoint, Key and Deployment from the configuration, so they have the information needed to connect to the service.
 
-3. Locate the GetChatCompletionAsync() method
+3. Locate the GetChatCompletionAsync method
 ```csharp
 public async Task<(string? response,
      int promptTokens, 
@@ -225,13 +225,13 @@ public async Task<(string? response,
 
 ```
 
-4. Add the following code at top of the try block to create a new instance of the Semantic Kernal ChatHistory and add to this both the system prompt and the user prompt that was passed into the method
+4. Add the following code at top of the try block to create a new instance of the Semantic Kernal ChatHistory and add to this both the system prompt and the user prompt that was passed into the method:
 ```csharp
 ChatHistory chatHistory = new ChatHistory();
 chatHistory.AddSystemMessage(_simpleSystemPrompt);
 chatHistory.AddUserMessage(prompt);
 ```
-5. Add the following code to creat an instance of the required settings that will be passed to completion call.
+5. Add the following code to create an instance of the required settings that will be passed to the completion call:
 
 ```csharp
 
@@ -244,18 +244,18 @@ chatHistory.AddUserMessage(prompt);
 ```
 
 - The **Temperature** value controls the randomness of the completion. The higher the temperature, the more random the completion.
-- The **MaxTokens** value control the maximum number of tokens to generate in the completion.
+- The **MaxTokens** value controls the maximum number of tokens to generate in the completion.
 - The **TopP** value controls the diversity of the completion.
-- The **FrequencyPenalty** value controls the models likelihood to repeat the same line verbatim.
+- The **FrequencyPenalty** value controls the models' likelihood to repeat the same line verbatim.
 - The **PresencePenalty** value controls likelihood of the model to talk about new topics.
 
-1. Add the following code for to call the the connector for completion based on the chatHistory and settings provided.
+1. Add the following code to call the connector for completion based on the chatHistory and settings provided:
 
 ```csharp
       var result = await kernel.GetRequiredService<IChatCompletionService>().GetChatMessageContentAsync(chatHistory, settings);
 ```
 
-7. Replace the existing code this new code to extract the response, prompt tokens and completion tokens from the result which will be returned to the caller as tuple.
+7. Replace the existing code with the following new code to extract the *response*, *promptTokens* and *completionTokens* from the *result* which will be returned to the caller as tuple.
 ```csharp
       // code to be replaced
       var response = ""; 
@@ -321,7 +321,7 @@ The updated GetChatCompletionAsync method should look like this:
 
 9. Open the **Services/ChatService.cs** file.
 
-10. Locate the **GetChatCompletionAsync()** and replace that old code that did very little this new code 
+10. Locate the **GetChatCompletionAsync** and replace the old code (that did very little), with this new code 
 ```csharp
 // code to be replaced 
 
@@ -337,9 +337,9 @@ The updated GetChatCompletionAsync method should look like this:
    (completion,  promptTokens,  completionTokens) =
        await _semanticKernelService.GetChatCompletionAsync(prompt);
 ```
-8. Thats it for the changes to chat service code so **save the Services/ChatService.cs** file.
+8. That's it for the changes to chat service code so **save the Services/ChatService.cs** file.
 
-The final version of the GetChatCompletionAsync() should look like this
+The final version of the GetChatCompletionAsync should look like this:
 ```csharp
 public async Task<string> GetChatCompletionAsync(string? sessionId, string prompt, string selectedCollectionName, string selectedCacheEnable)    {        try        {            ArgumentNullException.ThrowIfNull(sessionId);            // Setting some default values that will become more intersting to us later in the lab            bool cacheHit = false;            int promptTokens = 0;            int completionTokens = 0;            string collectionName = "none";            ///// This is where the magic will happen                    // new code            string completion = string.Empty;            (completion, promptTokens, completionTokens) =                await _semanticKernelService.GetChatCompletionAsync(prompt);            //Create message with all prompt, response and meta data            Message message = new Message(                    sessionId: sessionId,                    prompt: prompt,                    promptTokens: promptTokens,                    completion: completion,                    completionTokens: completionTokens,                    sourceSelected: selectedCollectionName,                    sourceCollection: collectionName,                    selectedCacheEnable, cacheHit);            //Commit message to array and database to drive the user experiance            await AddPromptCompletionMessagesAsync(sessionId, message);            return completion;        }        catch (Exception ex)        {            string message = $"ChatService.GetChatCompletionAsync(): {ex.Message}";            _logger.LogError(message);            throw;        }    }
 ```
@@ -358,7 +358,7 @@ dotnet run
 13. Lets ask our bot some general knowledge questions, like `what is the deepest ocean?`
 !IMAGE[LAB330ScreenShot3.png](instructions261180/LAB330ScreenShot3.png)
 
-Here we can see that we now have our application using the LLM to respond to individual prompts. Much more helpful.
+Here you can see that the application is using the LLM to respond to individual prompts. Much more helpful.
 
 ===
 # Giving our AI assistant context
