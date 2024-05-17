@@ -1,0 +1,94 @@
+$mongoConn = 'mongodb+srv://mongoAdminUser:Pwd!'+$labId+'@mongodb'+$labId+'.mongocluster.cosmos.azure.com/?tls=true'
+$openAIName = 'openai'+ $labId 
+
+$envContent = @"
+`$labId = $labId
+`$username = $username
+`$password= $password
+`$subscription = $subscription
+`$rgName = $rgName
+`$openAIName = $openAIName
+`$mongoConn = $mongoConn
+"@
+$envFilePath = "C:\Code\variables.txt"
+$envContent | Set-Content -Path $envFilePath
+
+$AzCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ($username, (ConvertTo-SecureString -AsPlainText -Force -String $password))
+Connect-AzAccount -Credential $AzCredential
+
+# Force Subscription Context
+Set-AzContext -Subscription $subscription 
+
+# Register Providers
+Register-AzResourceProvider -ProviderNamespace Microsoft.CognitiveServices
+
+# Assign CS User Owner Perms to contoso-chat-rg
+$CogServRole = Get-AzRoleDefinition -Name "Cognitive Services Contributor"
+$user = Get-AzADUser -UserPrincipalName $username
+$userID = $user.Id
+$resourceGroup = Get-AzResourceGroup -Name $rgName
+
+New-AzRoleAssignment -ObjectId $userID -RoleDefinitionName $CogServRole.Name
+
+# Once Deployment Complete, Write to ENV
+$openAiEndpoint = (Get-AzCognitiveServicesAccount -Name $openAiName -ResourceGroupName $rgName).Endpoint
+$openAiApiKey = (Get-AzCognitiveServicesAccountKey -Name $openAIName -ResourceGroupName $rgName).Key1
+
+# Write to env file
+$envContent = @"
+{
+  "DetailedErrors": true,
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "OpenAi": {
+    "Endpoint": "$openAiEndpoint",
+    "Key": "$openAiApiKey",
+    "EmbeddingsDeployment": "ada-002",
+    "CompletionsDeployment": "gpt35",
+    "MaxConversationTokens": "1500",
+    "MaxContextTokens": "2000",
+    "MaxCompletionTokens": "1500",
+    "MaxEmbeddingTokens": "2000"
+  },
+  "MongoDb": {
+    "Connection": "$mongoConn",
+    "DatabaseName": "retaildb",
+    "CollectionNames": "products, customers, salesOrders, completions",
+    "MaxVectorSearchResults": "50",
+    "VectorIndexType": "hnsw"
+  }
+}
+"@
+$envFilePath = "C:\Code\appSettings.json"
+$envContent | Set-Content -Path $envFilePath
+
+# Write to MongoDBLoad 
+$envContent = @"
+cd c:\MongoData
+c:\MongoTools\MongoRestore.exe /uri:$mongoConn
+pause
+"@
+$envFilePath = "C:\Code\MongoDBLoad.bat"
+$envContent | Set-Content -Path $envFilePath
+
+# Write to GitClone 
+$envContent = @"
+cd c:\Code
+rd MSBuildLab330 /S /Q
+git clone https://github.com/GaryHopeMS/MSBuildLab330 MSBuildLab330
+pause
+"@
+$envFilePath = "C:\Code\GitClone.bat"
+$envContent | Set-Content -Path $envFilePath
+
+$outputGit = [string] (& git clone https://github.com/GaryHopeMS/MSBuildLab330 c:\Code\MSBuildLab330 2>&1)
+"$outputGit" | out-file -filepath c:\Code\Git.out
+
+$outputMongo = [string] (& c:\MongoTools\MongoRestore.exe c:\MongoData\dump /uri:$mongoConn 2>&1)
+"$outputMongo" | out-file -filepath c:\Code\Mongo.out
+  
