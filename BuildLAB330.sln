@@ -18,6 +18,17 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lab Items", "Lab Items", "{EEE9DD13-B81D-4339-80D1-8D88BB5ED2A2}"
 	ProjectSection(SolutionItems) = preProject
 		Lab Script.md = Lab Script.md
+		img\LAB330ScreenShot0.1.png = img\LAB330ScreenShot0.1.png
+		img\LAB330ScreenShot0.png = img\LAB330ScreenShot0.png
+		img\LAB330ScreenShot1.png = img\LAB330ScreenShot1.png
+		img\LAB330ScreenShot2.png = img\LAB330ScreenShot2.png
+		img\LAB330ScreenShot3.png = img\LAB330ScreenShot3.png
+		img\LAB330ScreenShot4.png = img\LAB330ScreenShot4.png
+		img\LAB330ScreenShot5.png = img\LAB330ScreenShot5.png
+		img\LAB330ScreenShot6.png = img\LAB330ScreenShot6.png
+		img\LAB330ScreenShot7.png = img\LAB330ScreenShot7.png
+		img\LAB330ScreenShot8.png = img\LAB330ScreenShot8.png
+		img\LAB330ScreenShot9.png = img\LAB330ScreenShot9.png
 		SkillableDeployment.ps = SkillableDeployment.ps
 	EndProjectSection
 EndProject
