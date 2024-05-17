@@ -49,7 +49,7 @@ public class ChatService
             // for now I am only good at introducing myself.
             string completion = string.Empty;
             completion = "I am a really friendly chat bot and super happy to meet you" +
-                    Environment.NewLine + "however I cant realy do anything for you";
+                    Environment.NewLine + "  however I can’t really do anything for you";
             
 
             //Create message with all prompt, response and meta data
