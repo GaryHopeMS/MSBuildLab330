@@ -334,15 +334,12 @@ public class SemanticKernelService
     /// <returns>Array of vectors from the OpenAI embedding model deployment.</returns>
     public async Task<(float[] vectors, int embeddingsTokens)> GetEmbeddingsAsync(string input)
     {
-
-        float[] embedding = new float[0];
-        int responseTokens = 0;
         try
         {
+            var embeddings = await kernel.GetRequiredService<ITextEmbeddingGenerationService>().GenerateEmbeddingAsync(input);
+            float[] embeddingsArray = embeddings.ToArray();
 
-            float[] embeddingsArray = new float[1536];
-            responseTokens = 0;
-
+            int responseTokens = 0;
             return (embeddingsArray, responseTokens);
         }
         catch (Exception ex)

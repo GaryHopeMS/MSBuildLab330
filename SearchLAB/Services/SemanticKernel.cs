@@ -157,15 +157,12 @@ public class SemanticKernelService
 
     public async Task<(float[] vectors, int embeddingsTokens)> GetEmbeddingsAsync(string input)
     {
-
-        float[] embedding = new float[0];
-        int responseTokens = 0;
         try
         {
 
-            float[] embeddingsArray = new float[1536];
-            responseTokens = 0;
+            float[] embeddingsArray = new float[0];
 
+            int responseTokens = 0;
             return (embeddingsArray, responseTokens);
         }
         catch (Exception ex)

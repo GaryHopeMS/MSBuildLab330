@@ -7,6 +7,8 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs;
 using Microsoft.ML.Tokenizers;
 
+#pragma warning disable  CS8600, CS8602, CS8604 
+
 namespace Search.Services;
 
 /// <summary>
@@ -85,16 +87,14 @@ public class MongoDbService
     /// <returns>string payload of documents returned from the vector query</returns>
     public async Task<string> VectorSearchAsync(string collectionName, string path, float[] embeddings, int maxTokens)
     {
-
-        string resultDocuments = "[]"; 
-
         try
         {
-            var totalTokens = 0;
-            var totalDocuments = 0;
+            string resultDocuments = "[";
 
-       //      _logger.LogInformation($"Vector Search - Documents: {totalDocuments} Tokens: {totalTokens}");
+            // add code here
 
+            resultDocuments = resultDocuments + "]";
+            return resultDocuments;
         }
         catch (MongoException ex)
         {
@@ -102,7 +102,7 @@ public class MongoDbService
             throw;
         }
 
-        return resultDocuments;
+       
     }
 
 

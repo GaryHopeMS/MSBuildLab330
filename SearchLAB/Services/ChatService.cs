@@ -5,6 +5,8 @@ using Azure.AI.OpenAI;
 using System.Collections;
 using Microsoft.ML.Tokenizers;
 
+#pragma warning disable  CS8600, CS8602, CS8604 
+
 namespace Search.Services;
 
 public class ChatService
