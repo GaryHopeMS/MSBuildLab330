@@ -65,7 +65,7 @@ public class ChatService
         return conversationString;
     }
 
-    public async Task<string> GetChatCompletionAsync(string? sessionId, string prompt, string selectedCollectionName, string selectedCacheEnable)
+    public async Task<string> ProcessUserPrompt(string? sessionId, string prompt, string selectedCollectionName, string selectedCacheEnable)
     {
         try
         {
@@ -84,9 +84,9 @@ public class ChatService
             string collectionName = await GetCollectionNameFromSelection(selectedCollectionName, prompt);
             bool cacheEnabled = (selectedCacheEnable == "yes") ? true : false;
 
-            // Check cache if enabled
+            // Check if  cache  enabled and get a chache hit
             // add cache check code here
-          
+
             if (true) // Prompt processing block
             {
                 // Get conversation context

@@ -68,7 +68,7 @@ public class ChatService
         return conversationString;
     }
 
-    public async Task<string> GetChatCompletionAsync(string? sessionId, string prompt, string selectedCollectionName, string selectedCacheEnable)
+    public async Task<string> ProcessUserPrompt(string? sessionId, string prompt, string selectedCollectionName, string selectedCacheEnable)
     {
         try
         {
@@ -86,9 +86,9 @@ public class ChatService
             // Handle UI input.
             string collectionName = await GetCollectionNameFromSelection(selectedCollectionName, prompt);
             bool cacheEnabled = (selectedCacheEnable == "yes") ? true : false;
-            
-            // Check cache if enabled
-            if(cacheEnabled)
+
+            /// Check if  cache  enabled and get a chache hit/ Check cache if enabled
+            if (cacheEnabled)
             {
                 var cacheCompletion = await _semanticKernelService.CheckCache(prompt);
                 cacheHit = (cacheCompletion != string.Empty);
