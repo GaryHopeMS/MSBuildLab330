@@ -31,26 +31,75 @@ public class ChatService
         _logger = logger;
     }
 
+    private async Task<string> GetCollectionNameFromSelection(string selectedCollectionName, string prompt)
+    {
+        string collectionName = "none"; // default source collection context
+
+        switch (selectedCollectionName)
+        {
+            case "<none>":
+                collectionName = "none";
+                break;
+
+            case "<auto>":
+                collectionName = "none";
+                // Perform source selection lookup using LLM
+                // Add code to perform source selection using LLM 
+                await Task.Delay(0); 
+                break;
+
+            default:
+                collectionName = selectedCollectionName;
+                break;
+        }
+        return collectionName;
+    }
+
+    private string GetConversationStringFromMessages(List<Message> conversationContext, string prompt)
+    {
+        var conversationString = string
+            .Join(Environment.NewLine,
+                conversationContext.Select(m => m.Prompt + Environment.NewLine + m.Completion)
+                .ToArray() + Environment.NewLine + prompt);
+
+        return conversationString;
+    }
+
     public async Task<string> GetChatCompletionAsync(string? sessionId, string prompt, string selectedCollectionName, string selectedCacheEnable)
     {
         try
         {
             ArgumentNullException.ThrowIfNull(sessionId);
 
-            // Setting some default values that will become more intersting to us later in the lab
-            bool cacheHit = false;
+            // Initialize variables
+            string completion = "";
             int promptTokens = 0;
             int completionTokens = 0;
-            string collectionName = "none";
+            bool cacheHit = false;
 
 
-            ///// This is where the magic will happen        
-            
-            // for now I am only good at introducing myself.
-            string completion = string.Empty;
-            completion = "I am a really friendly chat bot and super happy to meet you" +
-                    Environment.NewLine + "  however I can’t really do anything for you";
-            
+            // Handle UI input.
+            string collectionName = await GetCollectionNameFromSelection(selectedCollectionName, prompt);
+            bool cacheEnabled = (selectedCacheEnable == "yes") ? true : false;
+
+            // Check cache if enabled
+            // add cache check code here
+          
+            if (true)
+            {
+                // Get conversation context
+                // add get conversation context code
+                // Get conversation embeddings
+                // add get conversation embeddings code
+                // Get RAG data context
+                // add get RAG data context code here
+                // Get completion
+                // add get completion code here
+
+                //Add entry to cache
+                // code for adding entry to cache goes here
+
+            }
 
             //Create message with all prompt, response and meta data
             Message message = new Message(
@@ -62,8 +111,8 @@ public class ChatService
                     sourceSelected: selectedCollectionName,
                     sourceCollection: collectionName,
                     selectedCacheEnable, cacheHit);
-            
-            //Commit message to array and database to drive the user experiance
+
+            //Commit message 
             await AddPromptCompletionMessagesAsync(sessionId, message);
 
             return completion;
@@ -109,7 +158,8 @@ public class ChatService
 
         List<Message> trimmedMessages = new List<Message>();
 
-        //<insert code here>
+        //Tokenize and trim conversation history based on tokens
+        // add code to tokenize and trim context
 
         return trimmedMessages.Reverse<Message>().ToList();
 
@@ -195,7 +245,7 @@ public class ChatService
     {
         ArgumentNullException.ThrowIfNull(sessionId);
 
-        //
+        // replace with code to perform LLM summary 
         string response = $"Chat {sessionId.Substring(sessionId.Length-12)}";
 
         await RenameChatSessionAsync(sessionId, response);
@@ -223,8 +273,8 @@ public class ChatService
 
     public async Task ClearCacheAsync()
     {
-       
+        await _semanticKernelService.ClearCacheAsync();
     }
-    
+
 
 }

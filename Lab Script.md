@@ -129,8 +129,8 @@ Let's connect our application to the Azure Open AI Service to generate more usef
 
 Our application is composed of the following three services 
 - The **ChatService** - this service is responsible for managing user interaction, chat logic and passing requests to the other services where appropriate.
-- The **SemanticKernel** service - this service is responsible for managing the interaction between the Chat Service and the backend Azure OpenAI Service LLM. As a highly extensible SDK Semantic Kernel works with various different models by way of connectors and provides you with rich capabilities that allow you to build fully automated AI agents that can call your application code and automate automate your business processes. We will just be touching on the basic capabilities of semantic kernel in this lab.  
-- The **MonogDBService** service - this services provides access to the data stored in the Cosmos DB for MongoDB database. The database will be used to store and retreive the chat history and provide aditional context to the chat based on the sample Cosmic Works retail dataset that it contains.
+- The **SemanticKernel** service - this service is responsible for managing the interaction between the Chat Service and the backend Azure OpenAI Service LLM. As a highly extensible SDK Semantic Kernel works with various models by way of connectors and provides you with rich capabilities that allow you to build fully automated AI agents that can call your application code and automate your business processes. We will just be touching on the basic capabilities of semantic kernel in this lab.  
+- The **MonogDBService** service - this services provides access to the data stored in the Cosmos DB for MongoDB database. The database will be used to store and retrieve the chat history and provide additional context to the chat based on the sample Cosmic Works retail dataset that it contains.
 
 
 First things first, we need to have a look at the primary method that handles the main prompt response loop of our application. This is the method that is invoked when a user submits a prompt to the UI. 
@@ -145,7 +145,7 @@ You will note the following about the GetChatCompletionAsync method:
 - It stores both the prompt and completion in a new instance of the Message class.
 - It stores this message in the database and updates the user interface by calling  AddPromptCompletionMessagesAsync method.
 
-The applications primary behaviour is driven by the *prompt*, *completion* and *sessionId*. The AddPromptCompletionMessagesAsync method is used to store these key pieces of information in the database and make them available to the UI. 
+The applications primary behavior is driven by the *prompt*, *completion* and *sessionId*. The AddPromptCompletionMessagesAsync method is used to store these key pieces of information in the database and make them available to the UI. 
 
 You will use the other parameters passed to the method and store additional information in the message as this lab develops.
 
@@ -177,7 +177,7 @@ Tokens are used to meter, provision and rate limit access to large language mode
 ### Implementing GetChatCompletionAsync()
 
 1. Open the **Services/SemanticKernel.cs** file.
-2. On inspecting this class, you will see that there is already code providing the service with an initilized local instance of the Sematic Kernel (you dont need to change anything in this step)
+2. On inspecting this class, you will see that there is already code providing the service with an initialized local instance of the Sematic Kernel (you don’t need to change anything in this step)
 
 ```csharp
    //Semantic Kernel
@@ -247,7 +247,7 @@ chatHistory.AddUserMessage(prompt);
 - The **MaxTokens** value controls the maximum number of tokens to generate in the completion.
 - The **TopP** value controls the diversity of the completion.
 - The **FrequencyPenalty** value controls the models' likelihood to repeat the same line verbatim.
-- The **PresencePenalty** value controls likelihood of the model to talk about new topics.
+- The **PresencePenalty** value controls the likelihood of the model to talk about new topics.
 
 1. Add the following code to call the connector for completion based on the chatHistory and settings provided:
 
@@ -367,9 +367,9 @@ We have the basics for our Generative AI chat application in place. Let's explor
 
 ## Test contextual follow up questions
 
-Humans interact with each other through conversations that have some *context* of what is being discussed. OpenAI's ChatGPT can also interact this way with humans. However, this capability is not native to an LLM itself. It must be implemented. Let's explore what happens when we test contextual follow up questions with our LLM where we ask follow up questions that imply an existing context like you would have in a conversation with another person.
+Humans interact with each other through conversations that have some *context* of what is being discussed. OpenAI's ChatGPT can also interact in this way with humans. However, this capability is not native to an LLM itself. It must be implemented. Let's explore what happens when we test contextual follow-up questions with our LLM where we ask follow up questions that imply an existing context like you would have in a conversation with another person.
 
-1. If you shutdown the app open a new terminal and start the application using **dotnet run** and open your browser to http://localhost:8100
+1. If you shutdown the app, open a new terminal and start the application using **dotnet run** and open your browser to http://localhost:8100
 
     ```bash
     dotnet run
@@ -379,7 +379,7 @@ Humans interact with each other through conversations that have some *context* o
 
     !IMAGE[LAB330ScreenShot4.png](instructions261180/LAB330ScreenShot4.png)
 
-1. Ask this follow up question. `What is the second highest?`. The response generated should look like the one below and will either have nothing to do with your first question, or the LLM may respond it doesn't understand your question.
+1. Ask this follow-up question. `What is the second highest?`. The response generated should look like the one below and will either have nothing to do with your first question, or the LLM may respond it doesn't understand your question.
 
     !IMAGE[LAB330ScreenShot5.png](instructions261180/LAB330ScreenShot5.png)
 What you are observing is LLM's are stateless. They do not by themselves maintain any conversation history and is missing the context necessary for the LLM to respond appropriately to your second question.
@@ -390,9 +390,9 @@ But before we write the code, we need to first understand the concept of tokens.
 
 ## Tokens and context
 
-Large language models require chat history to generate contextually relevant results. But there is a limit how much text you can send. Large language models have limits on how much text they can process in a single request and output in a response. These limits are not measured in bytes but as **tokens**, which on  average represent about 4 characters. Tokens are essentially the compute currency for large language models. Because of this limit on tokens, it is  necessary for us to manage their use. This can be a bit tricky in certain scenarios. You will need to ensure enough context for the LLM to generate a correct response, while avoiding negative results of consuming too many tokens which can include incomplete results or unexpected behavior.
+Large language models require chat history to generate contextually relevant results. But there is a limit how much text you can send. Large language models have limits on how much text they can process in a single request and output in a response. These limits are not measured in bytes but as **tokens** which, on  average, represent about 4 characters. Tokens are essentially the compute currency for large language models. Because of this limit on tokens, it is  necessary for us to manage their use. This can be a bit tricky in certain scenarios. You will need to ensure enough context for the LLM to generate a correct response, while avoiding negative results of consuming too many tokens which can include incomplete results or unexpected behavior.
 
-So to limit the maximum amount of chat history (and text) we send to our LLM, we will count the tokens for each user prompt and completion up to the amount specified in the **MaxConversationTokens** we specified in our configuration and passed to to the function.
+So to limit the maximum amount of chat history (and text) we send to our LLM, we will count the tokens for each user prompt and completion up to the amount specified in the **MaxConversationTokens** we specified in our configuration and passed to the function.
 
 ## Building a context window using tokens
 
@@ -418,7 +418,7 @@ The **conversationMessages** variable in this function will contain the entire c
 
  }
 ```
-It is important to note that in a conversation context recency matters, the most recent text is what we want closer to the actual question. To do that we will order the  **conversationMessages** in reverse TimeStamp order to select the most recent messages and count token usage to one message short of the **MaxConversationTokens** limit.
+It is important to note that in a conversation, context recency matters, the most recent text is what we want closer to the actual question. To do that we will order the  **conversationMessages** in reverse TimeStamp order to select the most recent messages and count token usage to one message short of the **MaxConversationTokens** limit.
 
 
 2. Beneath the creation of the ordered conversationMessages list and initalization of the trimmedMessages list add the following code.
@@ -436,9 +436,9 @@ It is important to note that in a conversation context recency matters, the most
       trimmedMessages.Add(message);
   }
 ```
-As this code iterates through the messages and copies them from one list to the other we evaluate the tokens using a tokenizer. Using the tokenizers estimated token cost of each message, the sum of  the Prompt and the Completion tokens total tokens are calculated and store in totalTokens. At the point in the process at which the totalTokens plus the tokens for the next message will exceed the maxConverstionTokens we return the trimmedMessages in the appopriate asscending order and limited to the provided token limit.
+As this code iterates through the messages and copies them from one list to the other we evaluate the tokens using a tokenizer. Using the tokenizers estimated token cost of each message, the sum of  the Prompt and the Completion tokens total tokens are calculated and store in totalTokens. At the point in the process at which the totalTokens plus the tokens for the next message will exceed the maxConverstionTokens we return the trimmedMessages in the appropriate ascending  order and limited to the provided token limit.
 
-Tokenizers are usefull to estimate the tokens in a manner consistent with how a specific model would tokenize but with the advantage that you dont need to call the LLM directly. In our implementation here we are using the Microsoft ML tokenizer for the GPT 3.5 Turbo model which you can see instanciated at the top of the class with the following code. 
+Tokenizers are useful to estimate the tokens in a manner consistent with how a specific model would tokenize but with the advantage that you don't need to call the LLM directly. In our implementation here we are using the Microsoft ML tokenizer for the GPT 3.5 Turbo model which you can see instanciated at the top of the class with the following code. 
 
 ```csharp
 private readonly Tokenizer tokenizer = Tokenizer.CreateTiktokenForModel("gpt-3.5-turbo");
@@ -460,13 +460,13 @@ public async Task<(string? response,
 
 \\...
 ```
-3. You need replace the begining of the method.
+3. You need to replace the beginning of the method.
 
 Here we are changing the signature of the function to include an additional parameter to allow us to pass in the conversation context as a list of messages. 
 
 These messages (prompts and completions) are then added to the chatHistory immediatly following system prompt in the order in which occured, finally followed by the the latest user prompt.
 
-Replace the begining of the method with the following code  
+Replace the beginning of the method with the following code  
 
 ```csharp
 public async Task<(string? response, int promptTokens, int responseTokens)>
@@ -484,12 +484,12 @@ public async Task<(string? response, int promptTokens, int responseTokens)>
         chatHistory.AddUserMessage(prompt);
 \\...
 ```
-the final code for the GetChatCompletionAsync method should look like this:
+The final code for the GetChatCompletionAsync method should look like this:
 ```csharp
 public async Task<(string? response, int promptTokens, int responseTokens)>    GetChatCompletionAsync(List<Message> conversationMessages, string prompt){    try    {        ChatHistory chatHistory = new ChatHistory();        chatHistory.AddSystemMessage(_simpleSystemPrompt);        foreach (var message in conversationMessages)        {            chatHistory.AddUserMessage(message.Prompt);            chatHistory.AddAssistantMessage(message.Completion);        }        chatHistory.AddUserMessage(prompt);...            OpenAIPromptExecutionSettings settings = new();            settings.Temperature = 0.2;            settings.MaxTokens = _maxCompletionTokens;            settings.TopP = 0.7;            settings.FrequencyPenalty = 0;            settings.PresencePenalty = -2;            var result = await kernel.GetRequiredService<IChatCompletionService>().GetChatMessageContentAsync(chatHistory, settings);            // new code            var response = result.Items[0].ToString();            CompletionsUsage completionUsage =                (CompletionsUsage)result.Metadata["Usage"];            var promptTokens = completionUsage.PromptTokens;            var completionTokens = completionUsage.CompletionTokens;            return (             response: response,             promptTokens: promptTokens,             responseTokens: completionTokens             );        }        catch (Exception ex)        {            string message = $"OpenAiService.GetChatCompletionAsync(): {ex.Message}";            _logger.LogError(message);            throw;        }    }
 ```
 
-4. Next, within the **ChatService.cs** class, locate **GetChatCompletionAsync()**. Identify within function the code where we make a call to _semanticKernelService.GetChatCompletionAsync(prompt) and add a call to GetConversationContext immediatly before this assigning the returned context messages to conversationContext. Update the call to GetChatCompletionAsync to now include the conversationContext as bellow.
+4. Next, within the **ChatService.cs** class, locate **GetChatCompletionAsync()**. Identify within the function the code where a call is made to _semanticKernelService.GetChatCompletionAsync(prompt) and add a call to GetConversationContext immediatly before this assigning the returned context messages to conversationContext. Update the call to GetChatCompletionAsync to now include the conversationContext as bellow.
 
  ```csharp
  // old code
@@ -512,45 +512,45 @@ the final code for the GetChatCompletionAsync method should look like this:
 ```
 5. Save **ChatService.cs** and **SemanticKernel.cs**
 
-6. If you have not shutdown your app do so now the terminal and start the application using **dotnet run** and open your browser to http://localhost:8100
+6. If you have not shut down your app do so now the terminal and start the application using **dotnet run** and open your browser to http://localhost:8100
 
 7. Let see if adding context helped when we try those same questions again.
 In the web application, create a new chat session and ask the AI assistant the same question again, `What is the highest mountain in North America?`. And wait for the response stating that it is Mount Denali, also known as Mount McKinley.
 
-8. Now ask the follow up question. `What is the second highest?`. The response generated is now going to be in response the question with the context of mountains in North America and should be Mount Logan.
+8. Now ask the follow up question. `What is the second highest?`. The response generated is now going to be in response to the question with the context of mountains in North America and should be Mount Logan.
 
 !IMAGE[LAB330ScreenShot6.png](instructions261180/LAB330ScreenShot6.png)
 
 
 ===
-# Adding additional data for AI assitant context 
+# Adding additional data for AI assistant context 
 
 We now have a have an AI assistant chat application that can take into account the conversation context. We want more than that, we want our AI assistant to act with an understanding of our data - the data that lives in our applications. 
 
-For the demo application we building today we are using the Cosmic Works retail data. In this dataset we have product, customer and sales data which is an adapted subset of the Adventure Works 2017 dataset for a retail Bike Shop that sells bicycles, biking accessories, components and clothing.
+For the demo application being built today you are using the Cosmic Works retail data. In this dataset we have product, customer and sales data which is an adapted subset of the Adventure Works 2017 dataset for a retail Bike Shop that sells bicycles, biking accessories, components and clothing.
 
 ## What is RAG and why vector search
 RAG is an acronym for Retrieval Augmented Generation, a fancy term for providing additional context data to a large language model to use when generating a response (a completion) to a user's natural language question (a prompt). The data used in this type of application can be of any kind. However, there is a limit to how much data can be sent due to the token limits discussed. 
 
-We hope that this part of the lab will highlight some of the opportunities that this architecture pattern offers, exposes some of the challenges you may encounter and provides a simple example of how you can approach it practicaly.
+We hope that this part of the lab will highlight some of the opportunities that this architecture pattern offers, exposes some of the challenges you may encounter and provides a simple example of how you can approach it practically.
 
-Vector search plays a crucial role in the Retrieval-Augmented Generation (RAG) architecture pattern by enabling efficient and effective retrieval of relevant information from a large sets of data. This capability is fundamental to the performance and utility of RAG models, particularly in tasks requiring access to specific knowledge or detailed information. Here’s how vector search enables the RAG architecture patterns:
+Vector search plays a crucial role in the Retrieval-Augmented Generation (RAG) architecture pattern by enabling efficient and effective retrieval of relevant information from a large set of data. This capability is fundamental to the performance and utility of RAG models, particularly in tasks requiring access to specific knowledge or detailed information. Here’s how vector search enables the RAG architecture patterns:
 
-In the RAG architecture, both the input query (the prompt or promt and conversation context) and the records in the corpus are transformed into vectors in a high-dimensional space using embeddings. These embeddings are generated through models that capture the semantic meaning of texts, allowing the system to go beyond simple keyword matching.
+In the RAG architecture, both the input query (the prompt, or prompt and conversation context) and the records in the corpus are transformed into vectors in a high-dimensional space using embeddings. These embeddings are generated through models that capture the semantic meaning of texts, allowing the system to go beyond simple keyword matching.
 
 Vector search utilizes these embeddings to perform semantic matching. By calculating the similarity between the vector of the query and the vectors of the documents allowing for the identification records that are contextually relevant to the query, even if they do not share exact keywords. This is particularly important for complex queries where contextual understanding is key to retrieving useful information.
 
-Vector search engines, often backed by algorithms like approximate nearest neighbor (ANN) search, are designed to handle very large datasets efficiently. They can quickly sift through millions of document vectors to find the most relevant matches for a given query vector. This speed and scalability are essential for integrating retrieval into the generative process without significant delays and at resonable costs.
+Vector search engines, often backed by algorithms like approximate nearest neighbor (ANN) search, are designed to handle very large datasets efficiently. They can quickly sift through millions of document vectors to find the most relevant matches for a given query vector. This speed and scalability are essential for integrating retrieval into the generative process without significant delays and at reasonable costs.
 
-Vector search based architectecturs can be continuously updated with new records and optimized embedding techniques allowing the RAG model to remain effective over time and adapt to new information and evolving data landscapes.
+Vector search-based architectures can be continuously updated with new records and optimized embedding techniques allowing the RAG model to remain effective over time and adapt to new information and evolving data landscapes.
 
 ## How do we build RAG patterns practicaly 
 
-There are four key elements to the RAG pattern: generating vectors (embeddings) for our dataset, generating vectors on our prompt context, searching using the stored vectors to retreive appropriate context data, generating completions based on this context. 
+There are four key elements to the RAG pattern: generating vectors (embeddings) for our dataset, generating vectors on our prompt context, searching using the stored vectors to retrieve appropriate context data, generating completions based on this context. 
 
-In our sample dataset the emdedding vectors were generated when the data was inserted into each of the collections in Azure Cosmos DB for MongoDB and stored in a property called *embedding* that is used for vector searches. In order for vector search queries to peform efficiently we want to ensure that the vectors are indexed with an vector index.
+In our sample dataset the embedding vectors were generated when the data was inserted into each of the collections in Azure Cosmos DB for MongoDB and stored in a property called *embedding* that is used for vector searches. In order for vector search queries to perform efficiently we want to ensure that the vectors are indexed with a vector index.
 
-Users ask natural language questions using the web-based chat user interface we have built so far. This prompt along with the conversation context will be vectorized and used to perform the vector search query against the data in the collections store in Azure Cosmos DB for MongoDB. The results of this query will be sent, along with some or all of the conversation context we previous generated to Azure OpenAI Service to generate a response back to the user. 
+Users ask natural language questions using the web-based chat user interface we have built so far. This prompt along with the conversation context will be vectorized and used to perform the vector search query against the data in the collections store in Azure Cosmos DB for MongoDB. The results of this query will be sent, along with some or all the conversation context we previous generated to Azure OpenAI Service to generate a response back to the user. 
 
 We will continue to store all user prompts and completion as messages.
 
@@ -562,7 +562,7 @@ Providing a method to generate embedding based on some string context is the fir
 
 1. Open the **Services/SemanticKernel.cs** file.
 
-2. Locate the **GetEmbeddingsAsync()** and replace the single statement assigning the embeddingsArray to an empty array with a call the the Semantic Kernel connector for embeddings and the conversion back to a vector array.
+2. Locate the **GetEmbeddingsAsync()** and replace the single statement assigning the embeddingsArray to an empty array with a call the Semantic Kernel connector for embeddings and the conversion back to a vector array.
 
 ```csharp
           // code to replace
@@ -601,12 +601,12 @@ var conversationContextString = string
    (float[] promptConversationVectors, int promptConversationTokens)
        = await _semanticKernelService.GetEmbeddingsAsync(conversationContextString + Environment.NewLine + prompt);
 ```
-This code converts the conversation history message list to a string of concatated prompts and completions stored in conversationContextString.  
+This code converts the conversation history message list to a string of concatenated  prompts and completions stored in conversationContextString.  
 This string is then passed to the new GetEmbeddingsAsync method passing in the conversationContextString with the latest user prompt appended.
 
 #### Performing the vector search
 
-We now need to create a method to perform the vector search for our context records and in the same way we did for conversation context and  limit this result to a token limit that we specified in our configuration. 
+We now need to create a method to perform the vector search for our context records and in the same way we did for conversation context and limit this result to a token limit that we specified in our configuration. 
 
 5. Open the **Services/MongoDbService.cs** file and locate the VectorSearchAsync()  method. 
 ```csharp
@@ -623,7 +623,7 @@ We now need to create a method to perform the vector search for our context reco
         }
 //...
 ```
-This method accepts a collectionName, a propery path, an embeddings vector and the maxTokens that can be used by the result which is a string containing a JSON array of context data
+This method accepts a collectionName, a property path, an embeddings vector and the maxTokens that can be used by the result which is a string containing a JSON array of context data
 
 6. Add the following code to create an instance of the collection we are going to be searching.
 
@@ -674,7 +674,7 @@ Here we specify the vector we what to use to search, the path of the property th
 
 It is important to note that k is the number of records returned from the database but due to the size variance of the documents themselves it does not directly correlate with token count. 
 
-We are also removing the _id and vector properies from the result as they will add no value to the context for the LLM, and add significant token cost. 
+We are also removing the _id and vector properties from the result as they will add no value to the context for the LLM, and add significant token cost. 
 
 ```
 
@@ -683,11 +683,11 @@ We are also removing the _id and vector properies from the result as they will a
             List<BsonDocument> bsonDocuments = await collection.Aggregate<BsonDocument>(pipeline).ToListAsync();
             List<string> textDocuments = bsonDocuments.ConvertAll(bsonDocument => bsonDocument.ToString());
 ```
-This query is executed in the same manner you would execute any other pipeline query using the MongoDB SDK. The results are convertedback to string list representation of the JSON documents. 
+This query is executed in the same manner you would execute any other pipeline query using the MongoDB SDK. The results are converted back to string list representation of the JSON documents. 
 
-It is important to note that in a RAG data relavancy in reation to the prompt or conversation context often matters more than recency so we keep the messages ordered as they were returned by the query, in order of most relavent first.
+It is important to note that with RAG data relevancy in relation to the prompt or conversation context often matters more than recency, so we keep the messages ordered as they were returned by the query, in order of most relevant first.
 
-10. Add the following code to select and transform the most relavant document content into a single large JSON array with the token count evaluated using a tokenizer with the process stopping just short of the **maxTokens** limit. 
+10. Add the following code to select and transform the most relevant document content into a single large JSON array with the token count evaluated using a tokenizer with the process stopping just short of the **maxTokens** limit. 
 ```csharp
             var totalTokens = 0;
             var totalDocuments = 0;

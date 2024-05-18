@@ -31,71 +31,91 @@ public class ChatService
         _logger = logger;
     }
 
+    private async Task<string> GetCollectionNameFromSelection(string selectedCollectionName,string prompt)
+    {
+        string collectionName = "none"; // default source collection context
+
+        switch (selectedCollectionName)
+        {
+            case "<none>":
+                collectionName = "none";
+                break;
+
+            case "<auto>":
+                collectionName = "none";
+                (string sourceCompletionText, int sourcePromptTokens, int sourceCompletionTokens)
+                        = await _semanticKernelService.GetPreferredSourceAsync(prompt);
+
+                if (sourceCompletionText == "salesOrders") collectionName = "salesOrders";
+                if (sourceCompletionText == "products") collectionName = "products";
+                if (sourceCompletionText == "customers") collectionName = "customers";
+                break;
+
+            default:
+                collectionName = selectedCollectionName;
+                break;
+        }
+        return collectionName;
+    }
+
+    private string GetConversationStringFromMessages(List<Message> conversationContext, string prompt)
+    {
+        var conversationString = string
+            .Join(Environment.NewLine,
+                conversationContext.Select(m => m.Prompt + Environment.NewLine + m.Completion)
+                .ToArray() + Environment.NewLine + prompt);
+
+        return conversationString;
+    }
+
     public async Task<string> GetChatCompletionAsync(string? sessionId, string prompt, string selectedCollectionName, string selectedCacheEnable)
     {
         try
         {
             ArgumentNullException.ThrowIfNull(sessionId);
-    
-            bool cacheHit = false;
- 
-            string collectionName = "none"; // default source collection context
 
-            string completion = string.Empty;
+            // Initialize variables
+            string completion = "";
             int promptTokens = 0;
             int completionTokens = 0;
+           
 
-            if (selectedCacheEnable == "yes")
+            // Handle UI input.
+            string collectionName = await GetCollectionNameFromSelection(selectedCollectionName, prompt);
+            bool cacheEnabled = (selectedCacheEnable == "yes") ? true : false;
+            
+            // Check cache if enabled
+            bool cacheHit = false;
+            if(cacheEnabled)
             {
-                completion = await _semanticKernelService.CheckCache(prompt);
-                cacheHit = (completion != string.Empty);
+                var cacheCompletion = await _semanticKernelService.CheckCache(prompt);
+                cacheHit = (cacheCompletion != string.Empty);
             }
 
             if (!cacheHit)
             {
 
+                // Get conversation context
                 List<Message> conversationContext = GetConversationContext(sessionId,_semanticKernelService.MaxConversationTokens);
-               
-                var conversationContextString = string
-                    .Join(Environment.NewLine,
-                        conversationContext.Select(m => m.Prompt + Environment.NewLine + m.Completion)
-                        .ToArray());
 
+                // Get conversation embeddings
                 (float[] promptConversationVectors, int promptConversationTokens)
-                    = await _semanticKernelService.GetEmbeddingsAsync(conversationContextString + Environment.NewLine + prompt);
+                    = await _semanticKernelService.GetEmbeddingsAsync(
+                        GetConversationStringFromMessages(conversationContext, prompt));
 
-                switch (selectedCollectionName)
-                {
-                    case "<none>":
-                        collectionName = "none";
-                        break;
-
-                    case "<auto>":
-                        collectionName = "none";
-                        (string sourceCompletionText, int sourcePromptTokens, int sourceCompletionTokens)
-                                = await _semanticKernelService.GetPreferredSourceAsync(prompt);
-
-                        if (sourceCompletionText == "salesOrders") collectionName = "salesOrders";
-                        if (sourceCompletionText == "products") collectionName = "products";
-                        if (sourceCompletionText == "customers") collectionName = "customers";
-                        break;
-
-                    default:
-                        collectionName = selectedCollectionName;
-                        break;
-                }
-
-                string retrievedRAGContext = "";
+                // Get RAG data context
+                string dataContext = "";
                 if (collectionName != "none")
-                    retrievedRAGContext
-                             = await _mongoDbService.VectorSearchAsync(collectionName, "embedding",
-                                 promptConversationVectors, _semanticKernelService.MaxContextTokens);
+                    dataContext  = await _mongoDbService.VectorSearchAsync(
+                        collectionName, "embedding",
+                        promptConversationVectors, _semanticKernelService.MaxContextTokens);
 
-                (completion,  promptTokens,  completionTokens) =
-                    await _semanticKernelService.GetCosmicChatCompletionAsync(
-                        conversationContext, retrievedRAGContext, prompt);
+                // Get completion
+                ( completion,  promptTokens,  completionTokens) =
+                    await _semanticKernelService.GetChatCompletionAsync(
+                        conversationContext, dataContext, prompt);
 
-                //Add the user prompt and completion to cache collection
+                //Add entry to cache
                 await _semanticKernelService.AddCachedMemory(prompt, completion);
             }
           
@@ -110,7 +130,7 @@ public class ChatService
                     sourceCollection: collectionName,
                     selectedCacheEnable, cacheHit);
             
-            //Commit message to array and database
+            //Commit message 
             await AddPromptCompletionMessagesAsync(sessionId, message);
 
             return completion;

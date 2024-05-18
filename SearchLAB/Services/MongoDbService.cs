@@ -91,7 +91,10 @@ public class MongoDbService
         {
             string resultDocuments = "[";
 
-            // add code here
+            // Perform vector search
+            // add vector search code here
+            await Task.Delay(0);
+
 
             resultDocuments = resultDocuments + "]";
             return resultDocuments;
