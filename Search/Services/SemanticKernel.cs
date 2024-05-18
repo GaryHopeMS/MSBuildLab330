@@ -113,14 +113,24 @@ public class SemanticKernelService
 
         // Initialize the Semantic Kernel
         var kernelBuilder = Kernel.CreateBuilder();
-        kernelBuilder.AddAzureOpenAIChatCompletion(semanticKernelOptions.CompletionsDeployment, semanticKernelOptions.Endpoint, semanticKernelOptions.Key);
-        kernelBuilder.AddAzureOpenAITextEmbeddingGeneration(semanticKernelOptions.EmbeddingsDeployment, semanticKernelOptions.Endpoint, semanticKernelOptions.Key);
+        kernelBuilder.AddAzureOpenAIChatCompletion(
+            semanticKernelOptions.CompletionsDeployment,
+            semanticKernelOptions.Endpoint,
+            semanticKernelOptions.Key);
+        kernelBuilder.AddAzureOpenAITextEmbeddingGeneration(
+            semanticKernelOptions.EmbeddingsDeployment,
+            semanticKernelOptions.Endpoint,
+            semanticKernelOptions.Key);
         kernel = kernelBuilder.Build();
 
+        // Build Sematic Kernel memory with Cosmos DB for MongoDB connector
         AzureCosmosDBMongoDBConfig memoryConfig = new(1536);
         memoryConfig.Kind = AzureCosmosDBVectorSearchType.VectorHNSW;
 
-        memoryStore = new(mongoDbOptions.Connection, mongoDbOptions.DatabaseName, memoryConfig);
+        memoryStore = new(
+            mongoDbOptions.Connection,
+            mongoDbOptions.DatabaseName,
+            memoryConfig);
 
         memory = new MemoryBuilder()
                 .WithAzureOpenAITextEmbeddingGeneration(
@@ -131,8 +141,6 @@ public class SemanticKernelService
                 .Build();
     }
 
-      
-
     public async Task<(string? response, int promptTokens, int responseTokens)>
         GetChatCompletionAsync(List<Message> conversationMessages, string RAGContext, string prompt)
     {
@@ -142,9 +150,10 @@ public class SemanticKernelService
             var promptTokens = 0;
             var completionTokens = 0;
 
+            //Construct chatHistory
+            string systemPrompt = _cosmicSystemPrompt + RAGContext;
             ChatHistory chatHistory = new ChatHistory();
-
-            chatHistory.AddSystemMessage(_cosmicSystemPrompt + RAGContext);
+            chatHistory.AddSystemMessage(systemPrompt);
             foreach (var message in conversationMessages)
             {
                 chatHistory.AddUserMessage(message.Prompt);
@@ -152,6 +161,8 @@ public class SemanticKernelService
             }
             chatHistory.AddUserMessage(prompt);
 
+
+            //Construct settings 
             OpenAIPromptExecutionSettings settings = new();
             settings.Temperature = 0.2;
             settings.MaxTokens = _maxCompletionTokens;
@@ -159,9 +170,11 @@ public class SemanticKernelService
             settings.FrequencyPenalty = 0;
             settings.PresencePenalty = -2;
 
+            // Get Completion
             var result = await kernel.GetRequiredService<IChatCompletionService>().GetChatMessageContentAsync(chatHistory, settings);
             response = result.Items[0].ToString();
-
+            
+            // Get Token usage
             CompletionsUsage completionUsage = (CompletionsUsage)result.Metadata["Usage"];
             promptTokens = completionUsage.PromptTokens;
             completionTokens = completionUsage.CompletionTokens;

@@ -72,9 +72,11 @@ public class ChatService
             ArgumentNullException.ThrowIfNull(sessionId);
 
             // Initialize variables
-            string completion = "";
-            int promptTokens = 0;
-            int completionTokens = 0;
+            string completion = "";                      // the output from our call to the LLM            
+            List<Message> conversationContext = new();   // chat context to provide to the LLM
+            string dataContext = "";                     // data context to provide to the LLM
+            int promptTokens = 0;                        // the number of tokens for the prompt
+            int completionTokens = 0;                    // the number of tokens for the completion
             bool cacheHit = false;
 
 
@@ -85,19 +87,24 @@ public class ChatService
             // Check cache if enabled
             // add cache check code here
           
-            if (true)
+            if (true) // Prompt processing block
             {
                 // Get conversation context
-                // add get conversation context code
-                // Get conversation embeddings
-                // add get conversation embeddings code
-                // Get RAG data context
-                // add get RAG data context code here
-                // Get completion
-                // add get completion code here
+                //   code to get conversation context goes here
 
-                //Add entry to cache
-                // code for adding entry to cache goes here
+                // Get conversation embeddings
+                //  code to get conversation embeddings goes here
+
+                // Get RAG data context
+                //  code to get RAG data context goes here
+
+                // Get completion
+                (completion, promptTokens, completionTokens) =
+                    await _semanticKernelService.GetChatCompletionAsync(
+                        conversationContext, dataContext, prompt);
+
+                // Add entry to cache
+                //  code for adding entry to cache goes here
 
             }
 

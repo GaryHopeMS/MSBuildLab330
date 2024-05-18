@@ -76,27 +76,29 @@ public class ChatService
 
             // Initialize variables
             string completion = "";
+            string dataContext = "";
+            List<Message> conversationContext = new();
             int promptTokens = 0;
             int completionTokens = 0;
-           
+            bool cacheHit = false;
+
 
             // Handle UI input.
             string collectionName = await GetCollectionNameFromSelection(selectedCollectionName, prompt);
             bool cacheEnabled = (selectedCacheEnable == "yes") ? true : false;
             
             // Check cache if enabled
-            bool cacheHit = false;
             if(cacheEnabled)
             {
                 var cacheCompletion = await _semanticKernelService.CheckCache(prompt);
                 cacheHit = (cacheCompletion != string.Empty);
             }
 
-            if (!cacheHit)
+            if (!cacheHit)  // Prompt processing block
             {
 
                 // Get conversation context
-                List<Message> conversationContext = GetConversationContext(sessionId,_semanticKernelService.MaxConversationTokens);
+                conversationContext = GetConversationContext(sessionId,_semanticKernelService.MaxConversationTokens);
 
                 // Get conversation embeddings
                 (float[] promptConversationVectors, int promptConversationTokens)
@@ -104,7 +106,7 @@ public class ChatService
                         GetConversationStringFromMessages(conversationContext, prompt));
 
                 // Get RAG data context
-                string dataContext = "";
+        
                 if (collectionName != "none")
                     dataContext  = await _mongoDbService.VectorSearchAsync(
                         collectionName, "embedding",
