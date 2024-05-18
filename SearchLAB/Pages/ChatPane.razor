@@ -310,7 +310,7 @@
             CacheEnable = "no";
         }
 
-        await chatService.GetChatCompletionAsync(CurrentSession?.SessionId, UserPrompt, CollectionName, CacheEnable);
+        await chatService.ProcessUserPrompt(CurrentSession?.SessionId, UserPrompt, CollectionName, CacheEnable);
 
         if(_messagesInChat?.Count == 2)
         {
