@@ -153,6 +153,9 @@ public class SemanticKernelService
             string systemPrompt = _simpleSystemPrompt;
             ChatHistory chatHistory = new ChatHistory();
             chatHistory.AddSystemMessage(systemPrompt);
+            
+                //Add code to include conversationMesssages to chat context
+
             chatHistory.AddUserMessage(prompt);
 
 
@@ -165,7 +168,8 @@ public class SemanticKernelService
             settings.PresencePenalty = -2;
 
             // Get Completion
-            var result = await kernel.GetRequiredService<IChatCompletionService>().GetChatMessageContentAsync(chatHistory, settings);
+            var result = await kernel.GetRequiredService<IChatCompletionService>()
+                .GetChatMessageContentAsync(chatHistory, settings);
             response = result.Items[0].ToString();
 
             // Get Token usage
