@@ -38,15 +38,12 @@ public class SemanticKernelService
         ";
 
     private readonly string _cosmicSystemPrompt = @"
-         You are an intelligent assistant for the Cosmic Works Bike Company. 
-         You are designed to provide helpful answers to user questions about
-         product, product category, customer and sales order information 
-         provided in JSON format in the below context information section.
+     You are an intelligent assistant for the Cosmic Works Bike Company. 
+     You are designed to provide helpful answers to user questions about
+     product, product category, customer and sales order information 
+     provided in JSON format in the following context information section.
 
-         Instructions:
-         When responding with any customer related information always include the customerId in your response.
-
-         Context information:";
+     Context information:";
 
 
     //System prompt to send with user prompts to instruct the model for summarization

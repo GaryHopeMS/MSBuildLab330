@@ -41,10 +41,7 @@ public class SemanticKernelService
      You are an intelligent assistant for the Cosmic Works Bike Company. 
      You are designed to provide helpful answers to user questions about
      product, product category, customer and sales order information 
-     provided in JSON format in the below context information section.
-
-     Instructions:
-     When responding with any customer related information always include the customerId in your response.
+     provided in JSON format in the following context information section.
 
      Context information:";
 
@@ -271,7 +268,8 @@ public class SemanticKernelService
         try
         {
             // Generate embeddings
-            var embeddings = await kernel.GetRequiredService<ITextEmbeddingGenerationService>().GenerateEmbeddingAsync(input);
+            var embeddings = await kernel.GetRequiredService<ITextEmbeddingGenerationService>()
+                .GenerateEmbeddingAsync(input);
             float[] embeddingsArray = embeddings.ToArray();
 
             int responseTokens = 0;

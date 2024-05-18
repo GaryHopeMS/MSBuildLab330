@@ -1,3 +1,4 @@
+
 ##Building AI Apps with Azure Cosmos DB for MongoDB, Azure OpenAI and the Semantic Kernel
 
 ## Virtual Machine Login
@@ -8,24 +9,23 @@
 
 ## Lab Introduction
 
-In this hands-on lab we will show you how to design and build an application using Azure Cosmos DB for MongoDB. You will use Cosmos DB's new vector search capabilities combined with Azure OpenAI service to create a new contextually rich Generative AI chat experience based on the data you already have.
+In this hands-on lab we will show you how to design and build an application using Azure Cosmos DB for MongoDB and use it's vector search capabilities combined with Azure OpenAI service to create a new contextually rich Generative AI assistant experience working against the data you already have.
 
-This hands-on lab will provide practical guidance on
-on how to create a RAG pattern application over transactional data, generating vectors and completions with Azure OpenAI Service, connect to multiple vectorized data sources, manage chat history and enhance performance with a semantic cache all orchestrated using Semantic Kernel. 
+This hands-on lab will provide practical guidance on creating a a RAG pattern application over transactional data, generating vectors and completions with Azure OpenAI Service, connecting to multiple vectorized data sources, managing chat history and enhancing performance with a semantic cache all orchestrated using Semantic Kernel. 
 
 This session will equip you with the knowledge you need to elevate your AI application development skills.
 
 
 ## What are we doing?
 
-This lab guides you through the steps to implement Generative AI capabilities in an ASP.NET Core Blazor application utilizing the powerful vector search capabilities of Azure Cosmos DB for MongoDB and the power of Azure OpenAI LLMs. 
+This lab guides you through the steps to implement Generative AI capabilities in an ASP.NET Core Blazor web application leveraging the powerful vector search capabilities of Azure Cosmos DB for MongoDB and Azure OpenAI LLMs. 
+
+
 These are the main tasks you will accomplish in this lab.
-1. Create a basic chat experience, forwarding user prompts to Azure OpenAI and surfacing the responses to the user interface, all the while storing this as chat history.
+1. Review a basic chat experience, forwarding user prompts to Azure OpenAI and surfacing the responses to the user interface, all the while storing this as chat history.
 1. Implement and test a chat history feature to allow for more natural conversational interactions using the chat history for context.
-1. Extend the functionality of your chat application based on the data you already have using Cosmos DB for MongoDB vector search capabilities to use this retrieved context as part of the RAG architecture pattern.
+1. Extend the functionality of your chat application based on a sample data set using Cosmos DB for MongoDB vector search capabilities and use this retrieved context implementing RAG architecture pattern.
 1.	(Optional) Implement and test a simple semantic cache for improved performance using the Semantic Kernel Connector for Cosmos DB for MongoDB.
-1.	(Optional) Extend the chat application with some simple AI intelligence to select the appropriate data source for context retrieval.
-1.	(Optional) Update the application user experience to provide summarized session navigation.
 
 # Getting up and running 
 In this lab you will be working on updating a pre-existing .NET AI assistant solution consisting of a single ASP.NET Blazor project. Whilst this project already provides a large amount of the boiler plate code typical of this type of application, you will still be building the core internals of this project to transform it into a fully functional AI assistant, using Azure Open AI and Cosmos DB for MongoDB services.
@@ -41,49 +41,9 @@ All these details are available in this labs' github repository.
 ###Getting going
 So, let's have a quick look at the projects code and get started.
 1.	Open **Visual Studio Code**, there is a link on the desktop or you can find it in the start menu. 
-1.	Now open the project folder at **C:\Code\BuildLab330\SearchLab**, this is the app we are going to be working on. 
+1.	The project folder **C:\Code\BuildLab330\SearchLab** will already be open,  this is the app we are going to be working on. 
 
-In a .NET application, it's common to use the configuration providers to inject new settings into your application. For this application we will use the **appsettings.json** file to provide the needed configuration values for Azure Cosmos DB and Azure OpenAI endpoints and keys.
-
-4.	In the root of the project folder, open the file named **appsettings.json**.
-4.	It should look similar to the following:
-
-```json
-{
-  "DetailedErrors": true,
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft.AspNetCore": "Warning"
-    }
-  },
-  "AllowedHosts": "*",
-  "OpenAi": {
-    "Endpoint": "{YourOpenAIEnpoint}",
-    "Key": "{YourOpenAIKey}",
-    "EmbeddingsDeployment": "ada-002",
-    "CompletionsDeployment": "gpt35",
-    "MaxConversationTokens": "1500",
-    "MaxContextTokens": "2000",
-    "MaxCompletionTokens": "1500",
-    "MaxEmbeddingTokens": "2000"
-  },
-  "MongoDb": {
-    "Connection": "mongodb+srv://{YourMongoUsername}:{YourMongoKey}@{YourMonogClusterName}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
-    "DatabaseName": "retaildb",
-    "CollectionNames": "products, customers, salesOrders, completions",
-    "MaxVectorSearchResults": "50",
-    "VectorIndexType": "hnsw"
-  }
-}
-```
-Here you can see in the **OpenAI section** of the file that we have an endpoint, model deployments and a key for your Azure Open AI service, along with some additional settings which we will use to control the behavior of our app (more on these later). 
-
-In the **MongoDB section** you will see the prepopulated connection string for the Cosmos DB for MongoDB service, the database name, collection names and a couple of settings which will allow us to control some of the database access behavior.
-
-You may want to come back later and tweak some of these settings
-
-Its now time to make sure the starter application template works as expected. In this step we build the application to verify that there are no issues before we make any modifications.
+Lets build, run and review the application to verify that there are no issues before we make any modifications.
 Let’s build and run the application.
 4.	Within **Visual Studio Code**, open a new terminal.
 !IMAGE[LAB330ScreenShot0.png](instructions261180/LAB330ScreenShot0.png)
@@ -94,125 +54,172 @@ dotnet build
 ```
 6.	You should see a **Build succeeded** message and **0 Error(s)** when it completes.
 
-You can expect to get a couple of warnings (yellow), these can be safely ignored for the demo code in this lab as you still need to complete some of it. 
-
 7.	Run the application using the **dotnet run** command.
 ```bash
 dotnet run
 ```
 The output should look something similar to:
 !IMAGE[LAB330ScreenShot0.1.png](instructions261180/LAB330ScreenShot0.1.png)
-8.	You can **ctrl+click** on the URL that is part of **Now listening on http://localhost:8100** message you should see in the terminal window to open a browser and connect to the web application which is now running locally. Alternatively open the browser and navigate to http://localhost:8100
 
-You now have the start of your new AI assistant up and running and it should look something like this:
+8.	You can **ctrl+click** on the URL that is part of **Now listening on http://localhost:8100** message you should see in the terminal window to open a browser and connect to the web application which is now running locally. Alternatively open the browser and navigate to http://localhost:8100.
 
+You should see something that looks like this:
 !IMAGE[LAB330ScreenShot1.png](instructions261180/LAB330ScreenShot1.png)
 
 
-####Let’s see what the bot can (or can't) do:
+####Let’s see what our assistant can do:
 9.	Click the **“Create New Chat”** button, this will start a new chat session.
-10.	Now say hi by typing `Hi there` in the message box and clicking the send button.
-The chat bot will reply with a brief introduction: “I am a really friendly chat bot and super happy to meet you…”
+13. Lets ask a general knowledge question, `what is the deepest ocean?`
 
-No matter what you ask of it, it is going to respond the same way. 
-It’s now your job to fix that. 
-!IMAGE[LAB330ScreenShot2.png](instructions261180/LAB330ScreenShot2.png)
+!IMAGE[LAB330BScreenShot1.png](instructions261180/LAB330BScreenShot1.png)
 
-11. Close the browser and shut down the service by pressing Ctrl+C in the terminal window.
+Great you have a working application and configuration.
+You can see that the application is responding to the user prompts using the LLM and providing reasonable general knowledge responses.
 
-We are now ready to start building. 
-
-Let's connect our application to the Azure Open AI Service to generate more useful responses from an LLM and convert our chat bot into an AI assistant.
+Next lets drill into the detail of what makes this work.
 
 ===
-# Making our AI assistant chat
+# What is making our AI assistant work
 
 Our application is composed of the following three services 
-- The **ChatService** - this service is responsible for managing user interaction, chat logic and passing requests to the other services where appropriate.
-- The **SemanticKernel** service - this service is responsible for managing the interaction between the Chat Service and the backend Azure OpenAI Service LLM. As a highly extensible SDK Semantic Kernel works with various models by way of connectors and provides you with rich capabilities that allow you to build fully automated AI agents that can call your application code and automate your business processes. We will just be touching on the basic capabilities of semantic kernel in this lab.  
-- The **MonogDBService** service - this services provides access to the data stored in the Cosmos DB for MongoDB database. The database will be used to store and retrieve the chat history and provide additional context to the chat based on the sample Cosmic Works retail dataset that it contains.
+- The **ChatService** - this service is responsible for managing user interaction, chat logic and cross service coordination.
+- The **SemanticKernel** service - this service is responsible for managing the interaction with the Azure OpenAI Service LLM using the Semantic Kernel.
+- The **MonogDBService** service - this services provides access to the data stored in the Cosmos DB for MongoDB database.
 
+### Exploring the main processing loop
 
-First things first, we need to have a look at the primary method that handles the main prompt response loop of our application. This is the method that is invoked when a user submits a prompt to the UI. 
+Let's a look at the method that is invoked when a user submits a prompt to the UI, *ProcessUserPrompt*
 
 1.	Open the **Services/ChatService.cs** file.
-2.	Locate the **GetChatCompletionAsync** method and review the code. 
+2.	Locate the **ProcessUserPrompt** method and review the code. 
 
-You will note the following about the GetChatCompletionAsync method:
-
-- It takes parameters for the sessionId and prompt from the user interface 
-- It generates responses (completions) to send back to the user.
-- It stores both the prompt and completion in a new instance of the Message class.
-- It stores this message in the database and updates the user interface by calling  AddPromptCompletionMessagesAsync method.
-
-The applications primary behavior is driven by the *prompt*, *completion* and *sessionId*. The AddPromptCompletionMessagesAsync method is used to store these key pieces of information in the database and make them available to the UI. 
-
-You will use the other parameters passed to the method and store additional information in the message as this lab develops.
-
-And as you can see from this part of the code:
-
+The **ProcessUserPrompt** method currently looks like:
 ```csharp
+ public async Task<string> ProcessUserPrompt(string? sessionId, string prompt, string selectedCollectionName, string selectedCacheEnable)
+ {
+     try
+     {
+         ArgumentNullException.ThrowIfNull(sessionId);
 
-///// This is where the magic will happen        
+         // Initialize variables
+         string completion = "";                      // the output from our call to the LLM            
+         List<Message> conversationContext = new();   // chat context to provide to the LLM
+         string dataContext = "";                     // data context to provide to the LLM
+         int promptTokens = 0;                        // the number of tokens for the prompt
+         int completionTokens = 0;                    // the number of tokens for the completion
+         bool cacheHit = false;
 
-// for now I am only good at introducing myself.
-string completion = string.Empty;
-completion = "I am a really friendly chat bot and super happy to meet you" +
-        Environment.NewLine + "however I cant realy do anything for you";
+
+         // Handle UI input.
+         string collectionName = await GetCollectionNameFromSelection(selectedCollectionName, prompt);
+         bool cacheEnabled = (selectedCacheEnable == "yes") ? true : false;
+
+         // Check if  cache  enabled and get a chache hit
+         // add cache check code here
+
+         if (true) // Prompt processing block
+         {
+             // Get conversation context
+             //   code to get conversation context goes here
+
+             // Get conversation embeddings
+             //  code to get conversation embeddings goes here
+
+             // Get RAG data context
+             //  code to get RAG data context goes here
+
+             // Get completion
+             (completion, promptTokens, completionTokens) =
+                 await _semanticKernelService.GetChatCompletionAsync(
+                     conversationContext, dataContext, prompt);
+
+             // Add entry to cache
+             //  code for adding entry to cache goes here
+
+         }
+
+         //Create message with all prompt, response and meta data
+         Message message = new Message(
+                 sessionId: sessionId,
+                 prompt: prompt,
+                 promptTokens: promptTokens,
+                 completion: completion,
+                 completionTokens: completionTokens,
+                 sourceSelected: selectedCollectionName,
+                 sourceCollection: collectionName,
+                 selectedCacheEnable, cacheHit);
+
+         //Commit message 
+         await AddPromptCompletionMessagesAsync(sessionId, message);
+
+         return completion;
+     }
+     catch (Exception ex)
+     {
+         string message = $"ChatService.GetChatCompletionAsync(): {ex.Message}";
+         _logger.LogError(message);
+         throw;
+     }
+ }
 ```
-It is not particularly useful at this point.
+ProcessUserPrompt is the primary method driving the application logic, handeling the main prompt response loop with the *prompt*, *completion* and *sessionId* values driving most of the application behaviour.
 
-## Connecting to Azure Open AI with Semantic Kernel
+You will note the following about the ProcessUserPrompt method:
 
-Let us implement the Semantic Kernel service so we can generate more interesting responses from our chosen LLM. 
+- It takes parameters for the *sessionId* and *prompt* from the user interface 
+- A completion is generated to send back to the user by calling *_semanticKernelService.GetChatCompletionAsync*
+- Both the prompt and completion are stored in a new *message* instance of the Message class.
+- The *message* is saved to our database and updates the user interface by calling the *AddPromptCompletionMessagesAsync* method.
 
-The first method we need to implement is to generate responses to our chat prompts, these responses are called completions. 
-You will implement the method that calls Azure OpenAI Service using the Semantic Kernel model plugin for Azure OpenAI. This will allow the application to generate a chat completion from one of the deployed LLMs for a given user prompt. The method will need to return the generated response text as well as the number of tokens used for the prompt and the response (completion). 
+You will also not that the framework for the additional code that we need to develop as we build out this application are provided as placeholder comments
 
-### What are tokens and why do they matter
-Large language model tokens refer to the basic units of text processed by the model. These tokens can represent words, parts of words or even punctuation marks, depending on the tokenization method used in that specific model. 
-Tokenization is the process of breaking down text into these manageable pieces that allows the model to handle a wide variety of vocabulary and linguistic structures efficiently. In training the models learn to predict the next token in a sequence, given the previous tokens, which enables it to generate coherent and contextually appropriate text. This approach forms the backbone and magic of how models understand and generate human-like text, making tokenization a crucial aspect of natural language processing in AI. 
-Tokens are used to meter, provision and rate limit access to large language models in order to manage and optimize resource allocation, ensure fair usage and control costs. Given this, a token is not just a unit of text (on average about 4 characters) but serves as a measure of the computational resources needed for processing of an input text or generating output text.
+For now ignore the the other defined place holder variables and parameters, their usefulness will become evident as we work through the lab.
 
-### Implementing GetChatCompletionAsync()
 
-1. Open the **Services/SemanticKernel.cs** file.
-2. On inspecting this class, you will see that there is already code providing the service with an initialized local instance of the Sematic Kernel (you don’t need to change anything in this step)
+### Connecting to Azure Open AI with Semantic Kernel
+
+Let's now have a look at the method that call to get back the the completions from our main processing loop, *GetChatCompletionAsync*
+
+3. Open the **Services/SemanticKernel.cs** file.
+4. Locate the **GetChatCompletionAsync** method.
+5. Review the code which looks like this:
 
 ```csharp
-   //Semantic Kernel
-   private readonly Kernel kernel;
-```
-```csharp
-    // Initialize the Semantic Kernel
-    var kernelBuilder = Kernel.CreateBuilder();
-    kernelBuilder.AddAzureOpenAIChatCompletion(
-         semanticKernelOptions.CompletionsDeployment,
-         semanticKernelOptions.Endpoint, 
-         semanticKernelOptions.Key);
-    kernelBuilder.AddAzureOpenAITextEmbeddingGeneration(
-        semanticKernelOptions.EmbeddingsDeployment,
-        semanticKernelOptions.Endpoint,
-        semanticKernelOptions.Key);
-    kernel = kernelBuilder.Build(); 
-```
-This code builds and initializes the kernel with the Azure OpenAI Chat Completion Model and Azure OpenAI Text Embedding Model connectors added to the build pipeline. Note that we are providing the connectors with the Endpoint, Key and Deployment from the configuration, so they have the information needed to connect to the service.
-
-3. Locate the GetChatCompletionAsync method
-```csharp
-public async Task<(string? response,
-     int promptTokens, 
-     int responseTokens)>
-  GetChatCompletionAsync(string prompt)
+public async Task<(string? response, int promptTokens, int responseTokens)>
+        GetChatCompletionAsync(List<Message> conversationMessages, string RAGContext, string prompt)
 {
-
     try
     {
-        //Call to Azure OpenAI to get response and tokens used 
-
-        var response = ""; 
+        var response = "";
         var promptTokens = 0;
         var completionTokens = 0;
+
+        // Construct chatHistory
+        string systemPrompt = _simpleSystemPrompt;
+        ChatHistory chatHistory = new ChatHistory();
+        chatHistory.AddSystemMessage(systemPrompt);
+        
+            //Add code to include conversationMesssages to chat context
+
+        chatHistory.AddUserMessage(prompt);
+
+        // Construct settings 
+        OpenAIPromptExecutionSettings settings = new();
+        settings.Temperature = 0.2;
+        settings.MaxTokens = _maxCompletionTokens;
+        settings.TopP = 0.7;
+        settings.FrequencyPenalty = 0;
+        settings.PresencePenalty = -2;
+
+        // Get Completion
+        var result = await kernel.GetRequiredService<IChatCompletionService>()
+                        .GetChatMessageContentAsync(chatHistory, settings);
+        response = result.Items[0].ToString();
+
+        // Get Token usage
+        CompletionsUsage completionUsage = (CompletionsUsage)result.Metadata["Usage"];
+        promptTokens = completionUsage.PromptTokens;
+        completionTokens = completionUsage.CompletionTokens;
 
         return (
          response: response,
@@ -221,144 +228,55 @@ public async Task<(string? response,
          );
 
     }
-    //....
-
-```
-
-4. Add the following code at top of the try block to create a new instance of the Semantic Kernal ChatHistory and add to this both the system prompt and the user prompt that was passed into the method:
-```csharp
-ChatHistory chatHistory = new ChatHistory();
-chatHistory.AddSystemMessage(_simpleSystemPrompt);
-chatHistory.AddUserMessage(prompt);
-```
-5. Add the following code to create an instance of the required settings that will be passed to the completion call:
-
-```csharp
-
-   OpenAIPromptExecutionSettings settings = new();
-       settings.Temperature = 0.2;
-       settings.MaxTokens = _maxCompletionTokens;
-       settings.TopP = 0.7;
-       settings.FrequencyPenalty = 0;
-       settings.PresencePenalty = -2;
-```
-
-- The **Temperature** value controls the randomness of the completion. The higher the temperature, the more random the completion.
-- The **MaxTokens** value controls the maximum number of tokens to generate in the completion.
-- The **TopP** value controls the diversity of the completion.
-- The **FrequencyPenalty** value controls the models' likelihood to repeat the same line verbatim.
-- The **PresencePenalty** value controls the likelihood of the model to talk about new topics.
-
-1. Add the following code to call the connector for completion based on the chatHistory and settings provided:
-
-```csharp
-      var result = await kernel.GetRequiredService<IChatCompletionService>().GetChatMessageContentAsync(chatHistory, settings);
-```
-
-7. Replace the existing code with the following new code to extract the *response*, *promptTokens* and *completionTokens* from the *result* which will be returned to the caller as tuple.
-```csharp
-      // code to be replaced
-      var response = ""; 
-      var promptTokens = 0;
-      var completionTokens = 0;
-```
-```csharp
-    // new code
-    var response = result.Items[0].ToString();
-    CompletionsUsage completionUsage = 
-        (CompletionsUsage)result.Metadata["Usage"];
-    var promptTokens = completionUsage.PromptTokens;
-    var completionTokens = completionUsage.CompletionTokens;
-```
-8. Thats it for the SemanticKernel service code so **save the Services/SemanticKernel.cs** file.
-
-The updated GetChatCompletionAsync method should look like this:
-```csharp
-  GetChatCompletionAsync(string prompt)
+    catch (Exception ex)
     {
 
-        try
-        {
-            //Call to Azure OpenAI to get response and tokens used 
+        string message = $"OpenAiService.GetChatCompletionAsync(): {ex.Message}";
+        _logger.LogError(message);
+        throw;
 
-            ChatHistory chatHistory = new ChatHistory();
-            chatHistory.AddSystemMessage(_simpleSystemPrompt);
-            chatHistory.AddUserMessage(prompt);
-
-            OpenAIPromptExecutionSettings settings = new();
-            settings.Temperature = 0.2;
-            settings.MaxTokens = _maxCompletionTokens;
-            settings.TopP = 0.7;
-            settings.FrequencyPenalty = 0;
-            settings.PresencePenalty = -2;
-
-            var result = await kernel.GetRequiredService<IChatCompletionService>().GetChatMessageContentAsync(chatHistory, settings);
-
-            // new code
-            var response = result.Items[0].ToString();
-            CompletionsUsage completionUsage =
-                (CompletionsUsage)result.Metadata["Usage"];
-            var promptTokens = completionUsage.PromptTokens;
-            var completionTokens = completionUsage.CompletionTokens;
-
-            return (
-             response: response,
-             promptTokens: promptTokens,
-             responseTokens: completionTokens
-             );
-
-        }
-        catch (Exception ex)
-        {
-
-            string message = $"OpenAiService.GetChatCompletionAsync(): {ex.Message}";
-            _logger.LogError(message);
-            throw;
-
-        }
     }
+}
 ```
 
-9. Open the **Services/ChatService.cs** file.
+The *GetChatCompletionAsync* is used to setup the requirements to call the Semantic Kernel *GetChatMessageContentAsync* method.
 
-10. Locate the **GetChatCompletionAsync** and replace the old code (that did very little), with this new code 
+You will note the following about the *GetChatCompletionAsync* method:
+
+- It takes parameters for the *prompt* (the other paramters will provide additional context to the completion call later in the lab).
+- Constructs a *chatHistory* instance of the Semantic Kernal ChatHistory class.
+    - It adds a system prompt to *chatHistory* as a system message
+    - It adds the *prompt* to the *chatHistory* sa a user message.
+- It constructs a *settings* instance and sets a number of paramters that control the completion call behavior. 
+- It calls the *GetChatMessageContentAsync* method on the Semantic Kernal contructed in the service constructor (we will have a look at that next).
+- It extracts the *promptTokens and completionTokens* of the prompt and completion from the result of the call to *GetChatMessageContentAsync*
+- It returns the completion and tokens to the caller as a tupple. 
+
+You will likely now be interested in understanding how the *kernel* instance used in *GetChatCompletionAsync* is constructed. 
+
+6. Locate the **SemanticKernelService** method within the **Services/SemanticKernel.cs** file.
+7. Locate the section which inializes the Semantic Kernal and looks like this:
 ```csharp
-// code to be replaced 
-
-     // for now I am only good at introducing myself.
-     string completion = string.Empty;
-     completion = "I am a really friendly chat bot and super happy to meet you" +
-             Environment.NewLine + "however I cant realy do anything for you";
+       // Initialize the Semantic Kernel
+       var kernelBuilder = Kernel.CreateBuilder();
+       kernelBuilder.AddAzureOpenAIChatCompletion(
+           semanticKernelOptions.CompletionsDeployment,
+           semanticKernelOptions.Endpoint,
+           semanticKernelOptions.Key);
+       kernelBuilder.AddAzureOpenAITextEmbeddingGeneration(
+           semanticKernelOptions.EmbeddingsDeployment,
+           semanticKernelOptions.Endpoint,
+           semanticKernelOptions.Key);
+       kernel = kernelBuilder.Build();
 ```
 
-```csharp
-// new code
-   string completion = string.Empty;
-   (completion,  promptTokens,  completionTokens) =
-       await _semanticKernelService.GetChatCompletionAsync(prompt);
-```
-8. That's it for the changes to chat service code so **save the Services/ChatService.cs** file.
+The Semantic Kernal uses a pluggable connector architecture that allows us to compose the  required connector modules for the functionality we require. Here the *kernalBuilder is used to build a *kernal* with the **Azure Open AI Chat Completion Connector** and the **Azure Open AI Text Embedding Generation Connector**.
 
-The final version of the GetChatCompletionAsync should look like this:
-```csharp
-public async Task<string> GetChatCompletionAsync(string? sessionId, string prompt, string selectedCollectionName, string selectedCacheEnable)    {        try        {            ArgumentNullException.ThrowIfNull(sessionId);            // Setting some default values that will become more intersting to us later in the lab            bool cacheHit = false;            int promptTokens = 0;            int completionTokens = 0;            string collectionName = "none";            ///// This is where the magic will happen                    // new code            string completion = string.Empty;            (completion, promptTokens, completionTokens) =                await _semanticKernelService.GetChatCompletionAsync(prompt);            //Create message with all prompt, response and meta data            Message message = new Message(                    sessionId: sessionId,                    prompt: prompt,                    promptTokens: promptTokens,                    completion: completion,                    completionTokens: completionTokens,                    sourceSelected: selectedCollectionName,                    sourceCollection: collectionName,                    selectedCacheEnable, cacheHit);            //Commit message to array and database to drive the user experiance            await AddPromptCompletionMessagesAsync(sessionId, message);            return completion;        }        catch (Exception ex)        {            string message = $"ChatService.GetChatCompletionAsync(): {ex.Message}";            _logger.LogError(message);            throw;        }    }
-```
+You will note that each connector is provided with the appropriate service settings defined in the projects appsettings.json file.
 
-9.	Within **Visual Studio Code**, open a new terminal.
-10.	Build the application using the **dotnet build** command.
-```bash
-dotnet build
-```
-11.	You should see a **Build succeeded** message when it completes.
+That it for the review, you should now have a solid understanding of the code driving the application functionality.
 
-12.	Run the application using the **dotnet run** command and open your browser to http://localhost:8100
-```bash
-dotnet run
-```
-13. Lets ask our bot some general knowledge questions, like `what is the deepest ocean?`
-!IMAGE[LAB330ScreenShot3.png](instructions261180/LAB330ScreenShot3.png)
-
-Here you can see that the application is using the LLM to respond to individual prompts. Much more helpful.
+Next we will explore some of the limits of this application and how to address them. 
 
 ===
 # Giving our AI assistant context
@@ -367,7 +285,9 @@ We have the basics for our Generative AI chat application in place. Let's explor
 
 ## Test contextual follow up questions
 
-Humans interact with each other through conversations that have some *context* of what is being discussed. OpenAI's ChatGPT can also interact in this way with humans. However, this capability is not native to an LLM itself. It must be implemented. Let's explore what happens when we test contextual follow-up questions with our LLM where we ask follow up questions that imply an existing context like you would have in a conversation with another person.
+Humans interact with each other through conversations that have some context of what is being discussed. LLMs based applications can be built to  interact in this way but this capability, it needs to be implemented by the application developer. 
+
+Let's explore what happens when we test the LLM with follow-up questions in our conversation
 
 1. If you shutdown the app, open a new terminal and start the application using **dotnet run** and open your browser to http://localhost:8100
 
@@ -375,144 +295,267 @@ Humans interact with each other through conversations that have some *context* o
     dotnet run
     ```
 
-1. In the web application, create a new chat session and ask the AI assistant the same question again, `What is the highest mountain in North America?`. And wait for the response, "Mount Denali, also known as Mount McKinley," with some additional information. 
+1. In the web application, create a new chat session and ask the AI assistant the same question again, `What is the highest mountain in North America?` and wait for the response. The answer will be "Mount Denali, also known as Mount McKinley," with some additional information. 
 
     !IMAGE[LAB330ScreenShot4.png](instructions261180/LAB330ScreenShot4.png)
 
-1. Ask this follow-up question. `What is the second highest?`. The response generated should look like the one below and will either have nothing to do with your first question, or the LLM may respond it doesn't understand your question.
+1. Ask the follow-up question, `What is the second highest?`. The response generated would likely look like the one below, having nothing to do with your first question, or the LLM may respond that it doesn't understand your question.
 
     !IMAGE[LAB330ScreenShot5.png](instructions261180/LAB330ScreenShot5.png)
-What you are observing is LLM's are stateless. They do not by themselves maintain any conversation history and is missing the context necessary for the LLM to respond appropriately to your second question.
 
-In this exercise we will show how to implement chat history, often called a **Conversation Context Window** for a Generative AI application. We will also explain the concept of tokens for an LLM and why these are important to consider when implementing a context window.
+What you are observing is the fact that LLM's are stateless. They do not by themselves maintain any conversation history and therefore would be missing the context necessary for them to respond appropriately to the second question.
 
-But before we write the code, we need to first understand the concept of tokens.
+In this exercise we will show how to implement chat history, often called a **Chat Context Window** for a Generative AI application. We will also explain the concept of tokens for an LLM and why these are important to consider when implementing a context window.
 
-## Tokens and context
 
-Large language models require chat history to generate contextually relevant results. But there is a limit how much text you can send. Large language models have limits on how much text they can process in a single request and output in a response. These limits are not measured in bytes but as **tokens** which, on  average, represent about 4 characters. Tokens are essentially the compute currency for large language models. Because of this limit on tokens, it is  necessary for us to manage their use. This can be a bit tricky in certain scenarios. You will need to ensure enough context for the LLM to generate a correct response, while avoiding negative results of consuming too many tokens which can include incomplete results or unexpected behavior.
+## What are tokens and why do they matter?
+Large language model **tokens**  refer to the basic units of text processed by the model. These tokens can represent words, parts of words or even punctuation marks, depending on the tokenization method used in that specific model (on average 1 token is equvalant to 4 characters).
 
-So to limit the maximum amount of chat history (and text) we send to our LLM, we will count the tokens for each user prompt and completion up to the amount specified in the **MaxConversationTokens** we specified in our configuration and passed to the function.
+Tokens are used to meter, provision and rate limit access to large language models in order to manage and optimize resource allocation, ensure fair usage and control costs. Given this, a token is not just a unit of text  but serves as a measure of the computational resources needed for processing of an input text or generating output text.
 
-## Building a context window using tokens
+Large language models require chat history to generate contextually relevant results. But there is a limit on how much text you can send as large language models given that they limit the tokens for each request and response pair and as a result their use needs to be well managed. Managing tokens can be challenging asyou need to ensure sufficient context is provided for the LLM to generate a relavant response whilst simultainiously ensuring that there are sufficient tokens for the response. Failing to find the correct balance can lead to incomplete results or unexpected behavior.
 
-1. Within the **ChatService.cs** class locate the **GetConversationContext()** method. 
-The **conversationMessages** variable in this function will contain the entire chat history for a specified session. The **trimmedMessages** is what we will use to construct a subset of those messages to send to the LLM to provide the appropriatly sized context based on tokens.
+
+## Building a chat context window using tokens
+
+3. Open the **Services/ChatService.cs** file.
+4. Locate the **GetConversationContext** method.
+
+The *GetConversationContext* method will look like this:
+```csharp
+private List<Message> GetConversationContext(
+    string sessionId, int maxConverstionTokens)
+{
+    // conversationMessages contains an ordered list of all conversation messsages for a session
+    int index = _sessions.FindIndex(s => s.SessionId == sessionId);
+    List<Message> conversationMessages = _sessions[index]
+        .Messages
+        .OrderByDescending(m => m.TimeStamp)
+        .ToList();
+
+    List<Message> trimmedMessages = new List<Message>();
+
+    //Tokenize and trim conversation history based on tokens
+    // add code to tokenize and trim context
+
+    return trimmedMessages.Reverse<Message>().ToList();
+
+}
+```
+You will note that the *GetConversationContext* method currently:
+- It retrieves an ordered list of *conversationMessages* based on the timestamp
+- It returns an empty list of *trimmedMessages*
+
+This method needs to return a list of *trimmedMessages* based on the the most recent *conversationMessages* that fit with the token limit provied by the  *MaxConversationTokens* parameter.
+
+5. Replace the placeholder "//Tokenize and trim .." comments with the following code:
 
 ```csharp
- private List<Message> GetConversationContext(
-     string sessionId, int maxConverstionTokens)
- {
-     // conversationMessages contains an ordered list of all conversation messsages for a session
-     int index = _sessions.FindIndex(s => s.SessionId == sessionId);
-     List<Message> conversationMessages = _sessions[index]
-         .Messages
-         .OrderByDescending(m => m.TimeStamp)
-         .ToList();
-         
-     List<Message> trimmedMessages = new List<Message>();   
-
-    //<insert code here>
-
-     return trimmedMessages.Reverse<Message>().ToList();
-
- }
+    //Tokenize and trim conversation history based on tokens
+    int totalTokens = 0;
+    foreach ( var message in conversationMessages)
+    {
+        var messageTokens = tokenizer.CountTokens(message.Prompt) + tokenizer.CountTokens(message.Completion);
+        if ((totalTokens+ messageTokens)> maxConverstionTokens)
+            break;
+        totalTokens= totalTokens + messageTokens;
+        trimmedMessages.Add(message);
+    }
 ```
-It is important to note that in a conversation, context recency matters, the most recent text is what we want closer to the actual question. To do that we will order the  **conversationMessages** in reverse TimeStamp order to select the most recent messages and count token usage to one message short of the **MaxConversationTokens** limit.
 
+This code:
+- Iterates through the *conversationMessages* and copies them into *trimmedMessages*
+- Gets the esitmated tokens for the prompt and completion using an *tokenizer* instance of the Microsoft ML tokenizer and accumulates these to *totalTokens*
+- Exits the copy process when the *totalTokens* is the next messages tokens short of the *maxConverstionTokens 
 
-2. Beneath the creation of the ordered conversationMessages list and initalization of the trimmedMessages list add the following code.
+Tokenizers are useful in that they can estimate the tokens in a manner consistent with how a specific model would tokenize without the need to call the LLM directly using client compute resources.
+
+The *GetConversationContext* should now will look like this:
+```csharp
+private List<Message> GetConversationContext(
+    string sessionId, int maxConverstionTokens)
+{
+    // conversationMessages contains an ordered list of all conversation messsages for a session
+    int index = _sessions.FindIndex(s => s.SessionId == sessionId);
+    List<Message> conversationMessages = _sessions[index]
+        .Messages
+        .OrderByDescending(m => m.TimeStamp)
+        .ToList();
+
+    List<Message> trimmedMessages = new List<Message>();
+
+    //Tokenize and trim conversation history based on tokens
+    int totalTokens = 0;
+    foreach (var message in conversationMessages)
+    {
+        var messageTokens = tokenizer.CountTokens(message.Prompt) + tokenizer.CountTokens(message.Completion);
+        if ((totalTokens + messageTokens) > maxConverstionTokens)
+            break;
+        totalTokens = totalTokens + messageTokens;
+        trimmedMessages.Add(message);
+    }
+
+    return trimmedMessages.Reverse<Message>().ToList();
+
+}
+```
+
+4. Locate the **ProcessUserPrompt** method within **ChatService.cs** 
+
+5. Replace the placeholder "// Get conversation context .." comments with the following code:
 
 ```csharp
-  int totalTokens = 0;
-  int totalMessages = 0;
-
-  foreach ( var message in conversationMessages)
-  {
-      var messageTokens = tokenizer.CountTokens(message.Prompt) + tokenizer.CountTokens(message.Completion);
-      if ((totalTokens+ messageTokens)> maxConverstionTokens)
-          break;
-      totalMessages++;
-      trimmedMessages.Add(message);
-  }
+// Get conversation context
+conversationContext = GetConversationContext(sessionId,_semanticKernelService.MaxConversationTokens);
 ```
-As this code iterates through the messages and copies them from one list to the other we evaluate the tokens using a tokenizer. Using the tokenizers estimated token cost of each message, the sum of  the Prompt and the Completion tokens total tokens are calculated and store in totalTokens. At the point in the process at which the totalTokens plus the tokens for the next message will exceed the maxConverstionTokens we return the trimmedMessages in the appropriate ascending  order and limited to the provided token limit.
+This calls the *GetConversationContext* method and stores the result in *conversationContext* which is the passed to the call to *GetChatCompletionAsync*
 
-Tokenizers are useful to estimate the tokens in a manner consistent with how a specific model would tokenize but with the advantage that you don't need to call the LLM directly. In our implementation here we are using the Microsoft ML tokenizer for the GPT 3.5 Turbo model which you can see instanciated at the top of the class with the following code. 
+The *ProcessUserPrompt* should now look like this:
 
 ```csharp
-private readonly Tokenizer tokenizer = Tokenizer.CreateTiktokenForModel("gpt-3.5-turbo");
+public async Task<string> ProcessUserPrompt(string? sessionId, string prompt, string selectedCollectionName, string selectedCacheEnable)
+{
+    try
+    {
+        ArgumentNullException.ThrowIfNull(sessionId);
+
+        // Initialize variables
+        string completion = "";                      // the output from our call to the LLM            
+        List<Message> conversationContext = new();   // chat context to provide to the LLM
+        string dataContext = "";                     // data context to provide to the LLM
+        int promptTokens = 0;                        // the number of tokens for the prompt
+        int completionTokens = 0;                    // the number of tokens for the completion
+        bool cacheHit = false;
+
+
+        // Handle UI input.
+        string collectionName = await GetCollectionNameFromSelection(selectedCollectionName, prompt);
+        bool cacheEnabled = (selectedCacheEnable == "yes") ? true : false;
+
+        // Check if  cache  enabled and get a chache hit
+        // add cache check code here
+
+        if (true) // Prompt processing block
+        {
+            // Get conversation context
+            conversationContext = GetConversationContext(sessionId, _semanticKernelService.MaxConversationTokens);
+
+            // Get conversation embeddings
+            //  code to get conversation embeddings goes here
+
+            // Get RAG data context
+            //  code to get RAG data context goes here
+
+            // Get completion
+            (completion, promptTokens, completionTokens) =
+                await _semanticKernelService.GetChatCompletionAsync(
+                    conversationContext, dataContext, prompt);
+
+            // Add entry to cache
+            //  code for adding entry to cache goes here
+
+        }
+
+        //Create message with all prompt, response and meta data
+        Message message = new Message(
+                sessionId: sessionId,
+                prompt: prompt,
+                promptTokens: promptTokens,
+                completion: completion,
+                completionTokens: completionTokens,
+                sourceSelected: selectedCollectionName,
+                sourceCollection: collectionName,
+                selectedCacheEnable, cacheHit);
+
+        //Commit message 
+        await AddPromptCompletionMessagesAsync(sessionId, message);
+
+        return completion;
+    }
+    catch (Exception ex)
+    {
+        string message = $"ChatService.GetChatCompletionAsync(): {ex.Message}";
+        _logger.LogError(message);
+        throw;
+    }
+}
 ```
+
+5. Save **ChatService.cs** 
 
 1. Open the **Services/SemanticKernel.cs** file. 
 1. Locate the **GetChatCompletionAsync** method
+1. Replace place the placeholder "// //Add code to include conversationMesssages .." comment with the following code:
 ```csharp
-public async Task<(string? response,
-     int promptTokens, 
-     int responseTokens)>
-  GetChatCompletionAsync(string prompt)
-{
-    try
-    {
-        ChatHistory chatHistory = new ChatHistory();
-        chatHistory.AddSystemMessage(_simpleSystemPrompt);
-        chatHistory.AddUserMessage(prompt);
-
-\\...
+ foreach (var message in conversationMessages)
+ {
+     chatHistory.AddUserMessage(message.Prompt);
+     chatHistory.AddAssistantMessage(message.Completion);
+ }
 ```
-3. You need to replace the beginning of the method.
+This itterates through the *conversationMessages* and adds them to the chat history 
 
-Here we are changing the signature of the function to include an additional parameter to allow us to pass in the conversation context as a list of messages. 
-
-These messages (prompts and completions) are then added to the chatHistory immediatly following system prompt in the order in which occured, finally followed by the the latest user prompt.
-
-Replace the beginning of the method with the following code  
-
+The *GetChatCompletionAsync* should now look like this:
 ```csharp
 public async Task<(string? response, int promptTokens, int responseTokens)>
-    GetChatCompletionAsync(List<Message> conversationMessages, string prompt)
+        GetChatCompletionAsync(List<Message> conversationMessages, string RAGContext, string prompt)
 {
     try
     {
+        var response = "";
+        var promptTokens = 0;
+        var completionTokens = 0;
+
+        // Construct chatHistory
+        string systemPrompt = _simpleSystemPrompt;
         ChatHistory chatHistory = new ChatHistory();
-        chatHistory.AddSystemMessage(_simpleSystemPrompt);
+        chatHistory.AddSystemMessage(systemPrompt);
         foreach (var message in conversationMessages)
         {
             chatHistory.AddUserMessage(message.Prompt);
             chatHistory.AddAssistantMessage(message.Completion);
         }
         chatHistory.AddUserMessage(prompt);
-\\...
+
+
+        // Construct settings 
+        OpenAIPromptExecutionSettings settings = new();
+        settings.Temperature = 0.2;
+        settings.MaxTokens = _maxCompletionTokens;
+        settings.TopP = 0.7;
+        settings.FrequencyPenalty = 0;
+        settings.PresencePenalty = -2;
+
+        // Get Completion
+        var result = await kernel.GetRequiredService<IChatCompletionService>()
+            .GetChatMessageContentAsync(chatHistory, settings);
+        response = result.Items[0].ToString();
+
+        // Get Token usage
+        CompletionsUsage completionUsage = (CompletionsUsage)result.Metadata["Usage"];
+        promptTokens = completionUsage.PromptTokens;
+        completionTokens = completionUsage.CompletionTokens;
+
+        return (
+         response: response,
+         promptTokens: promptTokens,
+         responseTokens: completionTokens
+         );
+
+    }
+    catch (Exception ex)
+    {
+
+        string message = $"OpenAiService.GetChatCompletionAsync(): {ex.Message}";
+        _logger.LogError(message);
+        throw;
+
+    }
+}
 ```
-The final code for the GetChatCompletionAsync method should look like this:
-```csharp
-public async Task<(string? response, int promptTokens, int responseTokens)>    GetChatCompletionAsync(List<Message> conversationMessages, string prompt){    try    {        ChatHistory chatHistory = new ChatHistory();        chatHistory.AddSystemMessage(_simpleSystemPrompt);        foreach (var message in conversationMessages)        {            chatHistory.AddUserMessage(message.Prompt);            chatHistory.AddAssistantMessage(message.Completion);        }        chatHistory.AddUserMessage(prompt);...            OpenAIPromptExecutionSettings settings = new();            settings.Temperature = 0.2;            settings.MaxTokens = _maxCompletionTokens;            settings.TopP = 0.7;            settings.FrequencyPenalty = 0;            settings.PresencePenalty = -2;            var result = await kernel.GetRequiredService<IChatCompletionService>().GetChatMessageContentAsync(chatHistory, settings);            // new code            var response = result.Items[0].ToString();            CompletionsUsage completionUsage =                (CompletionsUsage)result.Metadata["Usage"];            var promptTokens = completionUsage.PromptTokens;            var completionTokens = completionUsage.CompletionTokens;            return (             response: response,             promptTokens: promptTokens,             responseTokens: completionTokens             );        }        catch (Exception ex)        {            string message = $"OpenAiService.GetChatCompletionAsync(): {ex.Message}";            _logger.LogError(message);            throw;        }    }
-```
+5. Save **ChatService.cs** 
 
-4. Next, within the **ChatService.cs** class, locate **GetChatCompletionAsync()**. Identify within the function the code where a call is made to _semanticKernelService.GetChatCompletionAsync(prompt) and add a call to GetConversationContext immediatly before this assigning the returned context messages to conversationContext. Update the call to GetChatCompletionAsync to now include the conversationContext as bellow.
-
- ```csharp
- // old code
- (completion, promptTokens, completionTokens) = 
-    await _semanticKernelService.GetChatCompletionAsync(prompt);
-```
-
-```csharp
-// new code
-List<Message> conversationContext = GetConversationContext(sessionId,_semanticKernelService.MaxConversationTokens);
-
-(completion,  promptTokens,  completionTokens) =
-     await _semanticKernelService.GetChatCompletionAsync(
-         conversationContext, prompt);
-```
-
-the final code for the GetChatCompletionAsync method should look like this:
-```csharp
- public async Task<(string? response, int promptTokens, int responseTokens)>        GetChatCompletionAsync(List<Message> conversationMessages, string prompt)    {        try        {            ChatHistory chatHistory = new ChatHistory();            chatHistory.AddSystemMessage(_simpleSystemPrompt);            foreach (var message in conversationMessages)            {                chatHistory.AddUserMessage(message.Prompt);                chatHistory.AddAssistantMessage(message.Completion);            }            chatHistory.AddUserMessage(prompt);            OpenAIPromptExecutionSettings settings = new();            settings.Temperature = 0.2;            settings.MaxTokens = _maxCompletionTokens;            settings.TopP = 0.7;            settings.FrequencyPenalty = 0;            settings.PresencePenalty = -2;            var result = await kernel.GetRequiredService<IChatCompletionService>().GetChatMessageContentAsync(chatHistory, settings);            // new code            var response = result.Items[0].ToString();            CompletionsUsage completionUsage =                (CompletionsUsage)result.Metadata["Usage"];            var promptTokens = completionUsage.PromptTokens;            var completionTokens = completionUsage.CompletionTokens;            return (             response: response,             promptTokens: promptTokens,             responseTokens: completionTokens             );        }        catch (Exception ex)        {            string message = $"OpenAiService.GetChatCompletionAsync(): {ex.Message}";            _logger.LogError(message);            throw;        }    }
-```
-5. Save **ChatService.cs** and **SemanticKernel.cs**
-
-6. If you have not shut down your app do so now the terminal and start the application using **dotnet run** and open your browser to http://localhost:8100
+6. In the terminal and start the application using **dotnet run** and open your browser to http://localhost:8100
 
 7. Let see if adding context helped when we try those same questions again.
 In the web application, create a new chat session and ask the AI assistant the same question again, `What is the highest mountain in North America?`. And wait for the response stating that it is Mount Denali, also known as Mount McKinley.
@@ -521,276 +564,496 @@ In the web application, create a new chat session and ask the AI assistant the s
 
 !IMAGE[LAB330ScreenShot6.png](instructions261180/LAB330ScreenShot6.png)
 
+Well done! We now have a AI assistant that is aware of the conversation context 
+
+Next we will explore adding context from other data sources.
 
 ===
 # Adding additional data for AI assistant context 
 
-We now have a have an AI assistant chat application that can take into account the conversation context. We want more than that, we want our AI assistant to act with an understanding of our data - the data that lives in our applications. 
+We now have a have an AI assistant chat application that can leverage conversation context. We want more than that - we want our AI assistant to act with an understanding of our transactional data - the data that currently underpins our applications. 
 
-For the demo application being built today you are using the Cosmic Works retail data. In this dataset we have product, customer and sales data which is an adapted subset of the Adventure Works 2017 dataset for a retail Bike Shop that sells bicycles, biking accessories, components and clothing.
+For todays lab you will be using the Cosmic Works retail dataset which contains product, customer and sales data which is an adapted subset of the Adventure Works 2017 dataset.
 
 ## What is RAG and why vector search
-RAG is an acronym for Retrieval Augmented Generation, a fancy term for providing additional context data to a large language model to use when generating a response (a completion) to a user's natural language question (a prompt). The data used in this type of application can be of any kind. However, there is a limit to how much data can be sent due to the token limits discussed. 
+RAG is an acronym for Retrieval Augmented Generation, an achitecture for providing additional context data to our large language model to use when generating a completions.
 
-We hope that this part of the lab will highlight some of the opportunities that this architecture pattern offers, exposes some of the challenges you may encounter and provides a simple example of how you can approach it practically.
+Vector search plays a crucial role in RAG architectures, enabling efficient retrieval of relevant information from a large dataset. In a RAG architecture, both the input query text and all the documents in the target dataset are transformed into vectors in a high-dimensional space using embeddings generated through models that capture the semantic meaning of their content Vector search utilizes these embeddings by calculating the similarity between the vector of the query and the vectors of the documents allowing for the identification records that are contextually relevant to the query, enabling queries that go well beyond simple keyword matching.
 
-Vector search plays a crucial role in the Retrieval-Augmented Generation (RAG) architecture pattern by enabling efficient and effective retrieval of relevant information from a large set of data. This capability is fundamental to the performance and utility of RAG models, particularly in tasks requiring access to specific knowledge or detailed information. Here’s how vector search enables the RAG architecture patterns:
-
-In the RAG architecture, both the input query (the prompt, or prompt and conversation context) and the records in the corpus are transformed into vectors in a high-dimensional space using embeddings. These embeddings are generated through models that capture the semantic meaning of texts, allowing the system to go beyond simple keyword matching.
-
-Vector search utilizes these embeddings to perform semantic matching. By calculating the similarity between the vector of the query and the vectors of the documents allowing for the identification records that are contextually relevant to the query, even if they do not share exact keywords. This is particularly important for complex queries where contextual understanding is key to retrieving useful information.
-
-Vector search engines, often backed by algorithms like approximate nearest neighbor (ANN) search, are designed to handle very large datasets efficiently. They can quickly sift through millions of document vectors to find the most relevant matches for a given query vector. This speed and scalability are essential for integrating retrieval into the generative process without significant delays and at reasonable costs.
-
-Vector search-based architectures can be continuously updated with new records and optimized embedding techniques allowing the RAG model to remain effective over time and adapt to new information and evolving data landscapes.
-
-## How do we build RAG patterns practicaly 
-
-There are four key elements to the RAG pattern: generating vectors (embeddings) for our dataset, generating vectors on our prompt context, searching using the stored vectors to retrieve appropriate context data, generating completions based on this context. 
-
-In our sample dataset the embedding vectors were generated when the data was inserted into each of the collections in Azure Cosmos DB for MongoDB and stored in a property called *embedding* that is used for vector searches. In order for vector search queries to perform efficiently we want to ensure that the vectors are indexed with a vector index.
-
-Users ask natural language questions using the web-based chat user interface we have built so far. This prompt along with the conversation context will be vectorized and used to perform the vector search query against the data in the collections store in Azure Cosmos DB for MongoDB. The results of this query will be sent, along with some or all the conversation context we previous generated to Azure OpenAI Service to generate a response back to the user. 
-
-We will continue to store all user prompts and completion as messages.
+Another advantage of Vector search-based architectures is that they allow records to be updated or added and still perform effectively as data changes over time.
 
 ## Extending our app to support RAG
 
-#### Creating the promt embedding
+There are four key elements to inpmlementing the RAG pattern in our application
+- Generating embeddings vectors for our dataset
+- Generating vectors on our prompt context, 
+- Searching the dataset using the stored vectors to retrieve appropriate context data
+- Generating completions based on this context. 
 
-Providing a method to generate embedding based on some string context is the first order of business to enable us to generate a search vector based on the conversation context and latest prompt. 
+For the sample dataset we are using today:
+- The data is stored in collections within Azure Cosmos DB for MongoDB
+- The data hs embedding vectors already generated and store in each document in a proprert named *embedding*.
+- The collections are indexed with a vector index
+
+## Generating the prompt embedding
 
 1. Open the **Services/SemanticKernel.cs** file.
 
-2. Locate the **GetEmbeddingsAsync()** and replace the single statement assigning the embeddingsArray to an empty array with a call the Semantic Kernel connector for embeddings and the conversion back to a vector array.
+2. Locate the **GetEmbeddingsAsync** 
+
+3. Replace the code block below the "// Generate embeddings" comment with the following code:
 
 ```csharp
-          // code to replace
-          float[] embeddingsArray = new float[0];
+// Generate embeddings
+var embeddings = await kernel.GetRequiredService<ITextEmbeddingGenerationService>()
+    .GenerateEmbeddingAsync(input);
+float[] embeddingsArray = embeddings.ToArray();
 ```
+The method now calls *GenerateEmbeddingAsync* method on the Semantic Kernal contructed in the service constructor we looked at previous. The passing in the *input* string and returing the embeddings as an array. 
+
+The the GetEmbeddingsAsync method should now look like:
 ```csharp
-         // new code
-         var embeddings = await kernel.GetRequiredService<ITextEmbeddingGenerationService>().GenerateEmbeddingAsync(input);
-         float[] embeddingsArray = embeddings.ToArray();
-
-```
-
-The final should look like
-```csharp
-public async Task<(float[] vectors, int embeddingsTokens)> GetEmbeddingsAsync(string input)    {        try        {                     // new code         var embeddings = await kernel.GetRequiredService<ITextEmbeddingGenerationService>().GenerateEmbeddingAsync(input);         float[] embeddingsArray = embeddings.ToArray();            int responseTokens = 0;            return (embeddingsArray, responseTokens);        }        catch (Exception ex)        {            string message = $"SemanticKernel.GetEmbeddingsAsync(): {ex.Message}";            _logger.LogError(message);            throw;        }    }
-```
-
-3. Thats it for the changes to chat Semantic Kernel service code so **save the Services/SemanticKernel.cs** file.
-
-4. Within the **ChatService.cs** class, locate the now familiar **GetChatCompletionAsync** method. 
-Identify the previously added call to GetConversationContext and add the following code 
-
-```csharp
-// code to replace
-List<Message> conversationContext = GetConversationContext(sessionId,_semanticKernelService.MaxConversationTokens);
-```
-
-```csharp
-// new code
-List<Message> conversationContext = GetConversationContext(sessionId,_semanticKernelService.MaxConversationTokens);
-var conversationContextString = string
-       .Join(Environment.NewLine,
-           conversationContext.Select(m => m.Prompt + Environment.NewLine + m.Completion)
-           .ToArray());
-
-   (float[] promptConversationVectors, int promptConversationTokens)
-       = await _semanticKernelService.GetEmbeddingsAsync(conversationContextString + Environment.NewLine + prompt);
-```
-This code converts the conversation history message list to a string of concatenated  prompts and completions stored in conversationContextString.  
-This string is then passed to the new GetEmbeddingsAsync method passing in the conversationContextString with the latest user prompt appended.
-
-#### Performing the vector search
-
-We now need to create a method to perform the vector search for our context records and in the same way we did for conversation context and limit this result to a token limit that we specified in our configuration. 
-
-5. Open the **Services/MongoDbService.cs** file and locate the VectorSearchAsync()  method. 
-```csharp
-       public async Task<string> VectorSearchAsync(string collectionName, string path, float[] embeddings, int maxTokens)
-    {
-        try
-        {
-            string resultDocuments = "[";
-
-            // add code here
-
-            resultDocuments = resultDocuments + "]";
-            return resultDocuments;
-        }
-//...
-```
-This method accepts a collectionName, a property path, an embeddings vector and the maxTokens that can be used by the result which is a string containing a JSON array of context data
-
-6. Add the following code to create an instance of the collection we are going to be searching.
-
-```csharp
-  IMongoCollection<BsonDocument> collection = _database.GetCollection<BsonDocument>(collectionName);
-
-```
-
-7. Add the following code to convert the provided vector array into a BSON object the MongoDB SDKs can operate on.
-```csharp
-  var embeddingsArray = new BsonArray(embeddings.Select(e => new BsonDouble(Convert.ToDouble(e))));
-
-```
-
-8. Add the following code to construct the vector search query pipeline.
-```csharp
-BsonDocument[] pipeline = new BsonDocument[]
-{
-    new BsonDocument
-    {
-        {
-            "$search", new BsonDocument
-            {
-                {
-                    "cosmosSearch", new BsonDocument
-                    {
-                        { "vector", embeddingsArray },
-                        { "path", path },
-                        { "k", _maxVectorSearchResults }
-                    }
-                },
-                { "returnStoredSource", true }
-            }
-        }
-    },
-    new BsonDocument
-    {
-        {
-            "$project", new BsonDocument
-            {
-                {"_id", 0 },
-                {path, 0 },
-            }
-        }
-    }
-};
-Here we specify the vector we what to use to search, the path of the property that contains the vectors and k the number of results that want the vector search to return. 
-
-It is important to note that k is the number of records returned from the database but due to the size variance of the documents themselves it does not directly correlate with token count. 
-
-We are also removing the _id and vector properties from the result as they will add no value to the context for the LLM, and add significant token cost. 
-
-```
-
-9. Add the following code to execute the MongoDB query pipeline
-```csharp
-            List<BsonDocument> bsonDocuments = await collection.Aggregate<BsonDocument>(pipeline).ToListAsync();
-            List<string> textDocuments = bsonDocuments.ConvertAll(bsonDocument => bsonDocument.ToString());
-```
-This query is executed in the same manner you would execute any other pipeline query using the MongoDB SDK. The results are converted back to string list representation of the JSON documents. 
-
-It is important to note that with RAG data relevancy in relation to the prompt or conversation context often matters more than recency, so we keep the messages ordered as they were returned by the query, in order of most relevant first.
-
-10. Add the following code to select and transform the most relevant document content into a single large JSON array with the token count evaluated using a tokenizer with the process stopping just short of the **maxTokens** limit. 
-```csharp
-            var totalTokens = 0;
-            var totalDocuments = 0;
-
-            foreach (var document in textDocuments)
-            {
-                var tokens = _tokenizer.CountTokens(document);
-                if ((totalTokens + tokens) > maxTokens)
-                {
-                    break;
-                }
-                totalTokens += tokens;
-                totalDocuments += 1;
-                resultDocuments = resultDocuments + "," + document;
-            }
-
-```
-You should now be familiar with this algorithm as it is identical to the one we used for the chat history context. 
-
-3. Thats it for the changes to the MongoDB service code so **save the Services/MongoDBService.cs** file.
-
-4. Within the **ChatService.cs** class, locate the **GetChatCompletionAsync** method and identify the previously added call to GetEmbeddingsAsync after which add the following code 
-
-```csharp
-switch (selectedCollectionName)
- {
-     case "<none>":
-         collectionName = "none";
-         break;
-
-     case "<auto>":
-         collectionName = "none";         
-         break;
-
-     default:
-         collectionName = selectedCollectionName;
-         break;
- }
-```
-This code takes the selected collection name that is passed in using the selectedCollectionName parameter. We filter the <none> and <auto> values otherwise setting the collection name to the collection passed in.   
-
- 5. Add the following code to execute the vector qury if the collection is not "none" and store the result in the retrievedRAGContext variable.
-
-```csharp
-string retrievedRAGContext = "";
-if (collectionName != "none")
-   retrievedRAGContext
-       = await _mongoDbService.VectorSearchAsync(
-           collectionName
-           "embedding",
-           promptConversationVectors
-           _semanticKernelService.MaxContextTokens);
-```
-
-#### Performing the chat completion
-
-6. Open the **Services/SemanticKernel.cs** file and locate the GetChatCompletionAsync method 
-
-7. You need replace the begining of the method.
-
-Here we are changing the signature of the function to include an additional parameter to allow us to pass in the RAGConntext context in addition to the the previously added conversation messages.
-
-Replace the begining of the method with the following code. 
-
-```csharp
-public async Task<(string? response, int promptTokens, int responseTokens)>
-    GetCosmicChatCompletionAsync(List<Message> conversationMessages, string RAGContext, string prompt)
+public async Task<(float[] vectors, int embeddingsTokens)>
+    GetEmbeddingsAsync(string input)
 {
     try
     {
-        ChatHistory chatHistory = new ChatHistory();
-        chatHistory.AddSystemMessage(_cosmicSystemPrompt + RAGContext);
+        // Generate embeddings
+        var embeddings = await kernel.GetRequiredService<ITextEmbeddingGenerationService>()
+            .GenerateEmbeddingAsync(input);
+        float[] embeddingsArray = embeddings.ToArray();
+
+
+        int responseTokens = 0;
+        return (embeddingsArray, responseTokens);
+    }
+    catch (Exception ex)
+    {
+        string message = $"SemanticKernel.GetEmbeddingsAsync(): {ex.Message}";
+        _logger.LogError(message);
+        throw;
+
+    }
+}
 ```
+
+3. Save the **Services/SemanticKernel.cs** file.
+
+4. Within the **ChatService.cs** class
+5. locate the **ProcessUserPrompt** method. 
+6. Replace the "// Get conversation embeddings" comments with the following code
+
+```csharp
+ // Get conversation embeddings
+ (float[] promptConversationVectors, int promptConversationTokens)
+     = await _semanticKernelService.GetEmbeddingsAsync(
+         GetConversationStringFromMessages(conversationContext, prompt));
+```
+This calls the *GetEmbeddingsAsync* method passing in a string representation of the *conversationContext* and including the *prompt* and returns the embedding vector array. A helper method *GetConversationStringFromMessages* is used to convert the *conversationContext* messages into string format. 
+
+The @ProcessUserPrompt method now looks like this:
+
+```csharp
+public async Task<string> ProcessUserPrompt(string? sessionId, string prompt, string selectedCollectionName, string selectedCacheEnable)
+{
+    try
+    {
+        ArgumentNullException.ThrowIfNull(sessionId);
+
+        // Initialize variables
+        string completion = "";                      // the output from our call to the LLM            
+        List<Message> conversationContext = new();   // chat context to provide to the LLM
+        string dataContext = "";                     // data context to provide to the LLM
+        int promptTokens = 0;                        // the number of tokens for the prompt
+        int completionTokens = 0;                    // the number of tokens for the completion
+        bool cacheHit = false;
+
+
+        // Handle UI input.
+        string collectionName = await GetCollectionNameFromSelection(selectedCollectionName, prompt);
+        bool cacheEnabled = (selectedCacheEnable == "yes") ? true : false;
+
+        // Check if  cache  enabled and get a chache hit
+        // add cache check code here
+
+        if (true) // Prompt processing block
+        {
+            // Get conversation context
+            conversationContext = GetConversationContext(sessionId, _semanticKernelService.MaxConversationTokens);
+
+            // Get conversation embeddings
+            (float[] promptConversationVectors, int promptConversationTokens)
+                = await _semanticKernelService.GetEmbeddingsAsync(
+                    GetConversationStringFromMessages(conversationContext, prompt));
+
+
+            // Get RAG data context
+            //  code to get RAG data context goes here
+
+            // Get completion
+            (completion, promptTokens, completionTokens) =
+                await _semanticKernelService.GetChatCompletionAsync(
+                    conversationContext, dataContext, prompt);
+
+            // Add entry to cache
+            //  code for adding entry to cache goes here
+
+        }
+
+        //Create message with all prompt, response and meta data
+        Message message = new Message(
+                sessionId: sessionId,
+                prompt: prompt,
+                promptTokens: promptTokens,
+                completion: completion,
+                completionTokens: completionTokens,
+                sourceSelected: selectedCollectionName,
+                sourceCollection: collectionName,
+                selectedCacheEnable, cacheHit);
+
+        //Commit message 
+        await AddPromptCompletionMessagesAsync(sessionId, message);
+
+        return completion;
+    }
+    catch (Exception ex)
+    {
+        string message = $"ChatService.GetChatCompletionAsync(): {ex.Message}";
+        _logger.LogError(message);
+        throw;
+    }
+}
+```
+5. Save **ChatService.cs** 
+
+## Performing the vector search
+
+5. Open the **Services/MongoDbService.cs** file.
+6. Locate the **VectorSearchAsync**  method.
+7. Replace the "// Perform vector search ..." comments with the following code.
+```csharp
+ // Connect to collection
+ IMongoCollection<BsonDocument> collection = _database.GetCollection<BsonDocument>(collectionName);
+
+ // Convert embeddings to BSON array
+ var embeddingsArray = new BsonArray(embeddings.Select(e => new BsonDouble(Convert.ToDouble(e))));
+
+ // Define MongoDB pipeline query
+ BsonDocument[] pipeline = new BsonDocument[]
+ {
+     new BsonDocument
+     {
+         {
+             "$search", new BsonDocument
+             {
+                 {
+                     "cosmosSearch", new BsonDocument
+                     {
+                         { "vector", embeddingsArray },
+                         { "path", path },
+                         { "k", _maxVectorSearchResults }
+                     }
+                 },
+                 { "returnStoredSource", true }
+             }
+         }
+     },
+     new BsonDocument
+     {
+         {
+             "$project", new BsonDocument
+             {
+                 {"_id", 0 },
+                 {path, 0 },
+             }
+         }
+     }
+ };
+
+ // Execute query 
+ List<BsonDocument> bsonDocuments = await collection.Aggregate<BsonDocument>(pipeline).ToListAsync();
+ List<string> textDocuments = bsonDocuments.ConvertAll(bsonDocument => bsonDocument.ToString());
+
+ // Tokenize and limit to maxTokens 
+ var totalTokens = 0;
+ foreach (var document in textDocuments)
+ {
+     var tokens = _tokenizer.CountTokens(document);
+     if ((totalTokens + tokens) > maxTokens)
+     {
+         break;
+     }
+     totalTokens += tokens;
+     resultDocuments = resultDocuments + "," + document;
+ }
+```
+This code:
+- Connects to the specified collection using *collectionName*
+- Converts the query embeddings in *embeddings* to BSON for use in the query
+- Defines vector query and stores it in pipeline
+- Executes the vector query in the same manner as any typlical MongoDB pipeline query
+- Converts the BSON result into *textDocuments* list of strings
+- Itterates over and tokenizes *textDocuments* and limits the retuned *resultDocuments* based on the *maxTokens*, using an approach similar that used to tokenize and limit the chat context.
+
+The *VectorSearchAsync* method should now look like:
+```csharp
+public async Task<string> VectorSearchAsync(string collectionName, string path, float[] embeddings, int maxTokens)
+{
+    try
+    {
+        string resultDocuments = "[";
+
+        // Connect to collection
+        IMongoCollection<BsonDocument> collection = _database.GetCollection<BsonDocument>(collectionName);
+
+        // Convert embeddings to BSON array
+        var embeddingsArray = new BsonArray(embeddings.Select(e => new BsonDouble(Convert.ToDouble(e))));
+
+        // Define MongoDB pipeline query
+        BsonDocument[] pipeline = new BsonDocument[]
+        {
+ new BsonDocument
+ {
+     {
+         "$search", new BsonDocument
+         {
+             {
+                 "cosmosSearch", new BsonDocument
+                 {
+                     { "vector", embeddingsArray },
+                     { "path", path },
+                     { "k", _maxVectorSearchResults }
+                 }
+             },
+             { "returnStoredSource", true }
+         }
+     }
+ },
+ new BsonDocument
+ {
+     {
+         "$project", new BsonDocument
+         {
+             {"_id", 0 },
+             {path, 0 },
+         }
+     }
+ }
+        };
+
+        // Execute query 
+        List<BsonDocument> bsonDocuments = await collection.Aggregate<BsonDocument>(pipeline).ToListAsync();
+        List<string> textDocuments = bsonDocuments.ConvertAll(bsonDocument => bsonDocument.ToString());
+
+        // Tokenize and limit to maxTokens 
+        var totalTokens = 0;
+        foreach (var document in textDocuments)
+        {
+            var tokens = _tokenizer.CountTokens(document);
+            if ((totalTokens + tokens) > maxTokens)
+            {
+                break;
+            }
+            totalTokens += tokens;
+            resultDocuments = resultDocuments + "," + document;
+        }
+
+
+        resultDocuments = resultDocuments + "]";
+        return resultDocuments;
+    }
+    catch (MongoException ex)
+    {
+        _logger.LogError($"Exception: VectorSearchAsync(): {ex.Message}");
+        throw;
+    }
+
    
-The final GetChatCompletionAsync should look like
-```csharp
-public async Task<(string? response, int promptTokens, int responseTokens)>        GetChatCompletionAsync(List<Message> conversationMessages, string prompt)    {        try        {            ChatHistory chatHistory = new ChatHistory();            chatHistory.AddSystemMessage(_simpleSystemPrompt);            foreach (var message in conversationMessages)            {                chatHistory.AddUserMessage(message.Prompt);                chatHistory.AddAssistantMessage(message.Completion);            }            chatHistory.AddUserMessage(prompt);            OpenAIPromptExecutionSettings settings = new();            settings.Temperature = 0.2;            settings.MaxTokens = _maxCompletionTokens;            settings.TopP = 0.7;            settings.FrequencyPenalty = 0;            settings.PresencePenalty = -2;            var result = await kernel.GetRequiredService<IChatCompletionService>().GetChatMessageContentAsync(chatHistory, settings);            // new code            var response = result.Items[0].ToString();            CompletionsUsage completionUsage =                (CompletionsUsage)result.Metadata["Usage"];            var promptTokens = completionUsage.PromptTokens;            var completionTokens = completionUsage.CompletionTokens;            return (             response: response,             promptTokens: promptTokens,             responseTokens: completionTokens             );        }        catch (Exception ex)        {            string message = $"OpenAiService.GetChatCompletionAsync(): {ex.Message}";            _logger.LogError(message);            throw;        }    }
-``` 
-8. Thats it for the changes to the Semantic Kernel service code so **save the Services/SemanticKernel.cs** file.
+}
+```
+3. Save the **Services/MongoDBService.cs** file.
 
-9. Within the **ChatService.cs** class, locate the now familiar **GetChatCompletionAsync** method. 
-
-10. Replace the previous call to GetChatCompletionAsync with the following code
+4. Within the **ChatService.cs** class
+5. Locate the **ProcessUserPrompt** 
+6. Replace the "// Get RAG data context" comments with the following code:
 
 ```csharp
-// code to replace
-(completion, promptTokens, completionTokens) =  
-await _semanticKernelService.GetChatCompletionAsync(
-    conversationContext, prompt);
+// Get RAG data context
+                if (collectionName != "none")
+                    dataContext = await _mongoDbService.VectorSearchAsync(
+                            collectionName, "embedding",
+                            promptConversationVectors, _semanticKernelService.MaxContextTokens);
+
+```
+This code calls the *VectorSearchAsync* method if a valid collectionName is provided, storing the result of the vector query in *dataContext*.
+
+The *VectorSearchAsync* method should now look like this:
+```csharp
+public async Task<string> ProcessUserPrompt(string? sessionId, string prompt, string selectedCollectionName, string selectedCacheEnable)
+{
+    try
+    {
+        ArgumentNullException.ThrowIfNull(sessionId);
+
+        // Initialize variables
+        string completion = "";                      // the output from our call to the LLM            
+        List<Message> conversationContext = new();   // chat context to provide to the LLM
+        string dataContext = "";                     // data context to provide to the LLM
+        int promptTokens = 0;                        // the number of tokens for the prompt
+        int completionTokens = 0;                    // the number of tokens for the completion
+        bool cacheHit = false;
+
+
+        // Handle UI input.
+        string collectionName = await GetCollectionNameFromSelection(selectedCollectionName, prompt);
+        bool cacheEnabled = (selectedCacheEnable == "yes") ? true : false;
+
+        // Check if  cache  enabled and get a chache hit
+        // add cache check code here
+
+        if (true) // Prompt processing block
+        {
+            // Get conversation context
+            conversationContext = GetConversationContext(sessionId, _semanticKernelService.MaxConversationTokens);
+
+            // Get conversation embeddings
+            (float[] promptConversationVectors, int promptConversationTokens)
+                = await _semanticKernelService.GetEmbeddingsAsync(
+                    GetConversationStringFromMessages(conversationContext, prompt));
+
+
+            // Get RAG data context
+                if (collectionName != "none")
+                    dataContext = await _mongoDbService.VectorSearchAsync(
+                            collectionName,
+                             "embedding",
+                            promptConversationVectors,_semanticKernelService.MaxContextTokens);
+
+            // Get completion
+            (completion, promptTokens, completionTokens) =
+                await _semanticKernelService.GetChatCompletionAsync(
+                    conversationContext, dataContext, prompt);
+
+            // Add entry to cache
+            //  code for adding entry to cache goes here
+
+        }
+
+        //Create message with all prompt, response and meta data
+        Message message = new Message(
+                sessionId: sessionId,
+                prompt: prompt,
+                promptTokens: promptTokens,
+                completion: completion,
+                completionTokens: completionTokens,
+                sourceSelected: selectedCollectionName,
+                sourceCollection: collectionName,
+                selectedCacheEnable, cacheHit);
+
+        //Commit message 
+        await AddPromptCompletionMessagesAsync(sessionId, message);
+
+        return completion;
+    }
+    catch (Exception ex)
+    {
+        string message = $"ChatService.GetChatCompletionAsync(): {ex.Message}";
+        _logger.LogError(message);
+        throw;
+    }
+}
 ```
 
-```csharp
-// new code 
-(completion,  promptTokens,  completionTokens) =                    await _semanticKernelService.GetCosmicChatCompletionAsync(
-    conversationContext, retrievedRAGContext, prompt);
-```  
-8. And finaly we are done with updating the Chat service code so **save the Services/ChatService.cs** file.
+3. Save the **ChatService.cs** file.
 
-#### Bring our data to life
+## Performing the chat completion
+
+6. Open the **Services/SemanticKernel.cs** file 
+7. Locate the **GetChatCompletionAsync** method 
+
+7. Replace the ```csharp string systemPrompt = _simpleSystemPrompt;``` statement with ```csharp  string systemPrompt = _cosmicSystemPrompt + RAGContext;```
+
+This will changes the system prompt to one that refers to the concatenated *RAGContext* data.
+
+The final *GetChatCompletionAsync* method should look like:
+```csharp
+ public async Task<(string? response, int promptTokens, int responseTokens)>
+     GetChatCompletionAsync(List<Message> conversationMessages, string RAGContext, string prompt)
+ {
+     try
+     {
+         var response = "";
+         var promptTokens = 0;
+         var completionTokens = 0;
+
+         //Construct chatHistory
+         string systemPrompt = _cosmicSystemPrompt + RAGContext;
+         ChatHistory chatHistory = new ChatHistory();
+         chatHistory.AddSystemMessage(systemPrompt);
+         foreach (var message in conversationMessages)
+         {
+             chatHistory.AddUserMessage(message.Prompt);
+             chatHistory.AddAssistantMessage(message.Completion);
+         }
+         chatHistory.AddUserMessage(prompt);
+
+
+         //Construct settings 
+         OpenAIPromptExecutionSettings settings = new();
+         settings.Temperature = 0.2;
+         settings.MaxTokens = _maxCompletionTokens;
+         settings.TopP = 0.7;
+         settings.FrequencyPenalty = 0;
+         settings.PresencePenalty = -2;
+
+         // Get Completion
+         var result = await kernel.GetRequiredService<IChatCompletionService>()
+             .GetChatMessageContentAsync(chatHistory, settings);
+         response = result.Items[0].ToString();
+         
+         // Get Token usage
+         CompletionsUsage completionUsage = (CompletionsUsage)result.Metadata["Usage"];
+         promptTokens = completionUsage.PromptTokens;
+         completionTokens = completionUsage.CompletionTokens;
+
+         return (
+          response: response,
+          promptTokens: promptTokens,
+          responseTokens: completionTokens
+          );
+
+     }
+     catch (Exception ex)
+     {
+
+         string message = $"OpenAiService.GetChatCompletionAsync(): {ex.Message}";
+         _logger.LogError(message);
+         throw;
+
+     }
+ }
+``` 
+7. Locate the **_cosmicSystemPrompt** class property within **Services/SemanticKernel.cs** to review the system prompt that is now being used by *GetChatCompletionAsync*.
+
+```csharp
+    private readonly string _cosmicSystemPrompt = @"
+     You are an intelligent assistant for the Cosmic Works Bike Company. 
+     You are designed to provide helpful answers to user questions about
+     product, product category, customer and sales order information 
+     provided in JSON format in the below context information section.
+
+     Context information:";
+``` 
+You can see that this system prompt now prompts the LLM for a response that also includes reference to the concatenated JSON data retrieved by the vector search. 
+
+8. Save the **SemanticKernel.cs** file.
+
+
+## Bring our data to life
 
 9. If you have not shutdown your app do so now the terminal and start the application using **dotnet run** and open your browser to http://localhost:8100
 
-By default your chat should stil function the way it used and provide and support conversational context when the data source selector is set to 'none'
+By default your chat should still function the way it used and provide and support conversational context when the data source selector is set to 'none'
 
 10. In the web application, create a new chat session and ask the AI assistant `Whats the deepest ocean?`. And wait for the response, "the Pacific Ocean" with some additional information. 
 
@@ -806,8 +1069,7 @@ By default your chat should stil function the way it used and provide and suppor
 
 !IMAGE[LAB330ScreenShot9.png](instructions261180/LAB330ScreenShot9.png)
 
+Congratulations 
 We have met one of our key objective we have an intelegent AI chat assistant that can leverage our data to provide contextualy aware answers.
 
-Now it's not perfect, we still need to tell it which data sources to use and we can tackle that challenge in the future.
-
-
+===

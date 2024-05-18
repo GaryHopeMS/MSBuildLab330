@@ -106,7 +106,6 @@ public class ChatService
                         GetConversationStringFromMessages(conversationContext, prompt));
 
                 // Get RAG data context
-        
                 if (collectionName != "none")
                     dataContext  = await _mongoDbService.VectorSearchAsync(
                         collectionName, "embedding",
@@ -188,17 +187,16 @@ public class ChatService
             .OrderByDescending(m => m.TimeStamp)
             .ToList();
        
-        List<Message> trimmedMessages = new List<Message>();   
+        List<Message> trimmedMessages = new List<Message>();
 
+        //Tokenize and trim conversation history based on tokens
         int totalTokens = 0;
-        int totalMessages = 0;
-
         foreach ( var message in conversationMessages)
         {
             var messageTokens = tokenizer.CountTokens(message.Prompt) + tokenizer.CountTokens(message.Completion);
             if ((totalTokens+ messageTokens)> maxConverstionTokens)
                 break;
-            totalMessages++;
+            totalTokens= totalTokens + messageTokens;
             trimmedMessages.Add(message);
         }
 

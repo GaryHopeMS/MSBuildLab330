@@ -91,12 +91,13 @@ public class MongoDbService
         {
             string resultDocuments = "["; // string.Empty;
 
+            // Connect to collection
             IMongoCollection<BsonDocument> collection = _database.GetCollection<BsonDocument>(collectionName);
 
+            // Convert embeddings to BSON array
             var embeddingsArray = new BsonArray(embeddings.Select(e => new BsonDouble(Convert.ToDouble(e))));
 
-            //Search MongoDB vCore collection for similar embeddings
-
+            // Define MongoDB pipeline query
             BsonDocument[] pipeline = new BsonDocument[]
             {
                 new BsonDocument
@@ -128,12 +129,12 @@ public class MongoDbService
                 }
             };
 
-
+            // Execute query 
             List<BsonDocument> bsonDocuments = await collection.Aggregate<BsonDocument>(pipeline).ToListAsync();
             List<string> textDocuments = bsonDocuments.ConvertAll(bsonDocument => bsonDocument.ToString());
 
+            // Tokenize and limit to maxTokens 
             var totalTokens = 0;
-            var totalDocuments = 0;
 
             foreach (var document in textDocuments)
             {
@@ -143,7 +144,6 @@ public class MongoDbService
                     break;
                 }
                 totalTokens += tokens;
-                totalDocuments += 1;
                 resultDocuments = resultDocuments + "," + document;
             }
 
