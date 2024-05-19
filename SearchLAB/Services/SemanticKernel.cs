@@ -236,7 +236,7 @@ public class SemanticKernelService
     {
         //Save prompt and completion to memory
         // add code to save to memory
-        Task.Delay(0);
+        await Task.Delay(0); // place holder code
     }
 
     public async Task<string> CheckCache(string userPrompt)
@@ -245,7 +245,7 @@ public class SemanticKernelService
 
         //Search memory for userPrompt
         // add code to query memory
-        Task.Delay(0);
+        await Task.Delay(0); // place holder code
 
         return cacheResult;
     }
@@ -254,7 +254,7 @@ public class SemanticKernelService
     {
         // Clear cache by deleting memory store collection
         // add code to clear the cache
-        Task.Delay(0);
+        await Task.Delay(0); // place holder code
     }
 
     // <summary>
