@@ -235,7 +235,8 @@ public class SemanticKernelService
     public async Task AddCachedMemory(string promptText, string completionText)
     {
         //Save prompt and completion to memory
-        // add code to save to memory 
+        // add code to save to memory
+        Task.Delay(0);
     }
 
     public async Task<string> CheckCache(string userPrompt)
@@ -243,7 +244,8 @@ public class SemanticKernelService
         string cacheResult = string.Empty;
 
         //Search memory for userPrompt
-        // add code to query memory 
+        // add code to query memory
+        Task.Delay(0);
 
         return cacheResult;
     }
@@ -252,6 +254,7 @@ public class SemanticKernelService
     {
         // Clear cache by deleting memory store collection
         // add code to clear the cache
+        Task.Delay(0);
     }
 
     // <summary>
