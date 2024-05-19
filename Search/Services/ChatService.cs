@@ -90,8 +90,8 @@ public class ChatService
             /// Check if  cache  enabled and get a chache hit/ Check cache if enabled
             if (cacheEnabled)
             {
-                var cacheCompletion = await _semanticKernelService.CheckCache(prompt);
-                cacheHit = (cacheCompletion != string.Empty);
+                completion = await _semanticKernelService.CheckCache(prompt);
+                cacheHit = (completion != string.Empty);
             }
 
             if (!cacheHit)  // Prompt processing block

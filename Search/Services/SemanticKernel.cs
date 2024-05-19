@@ -237,23 +237,30 @@ public class SemanticKernelService
 
     public async Task AddCachedMemory(string promptText, string completionText)
     {
+        //Save prompt and completion to memory
         await memory.SaveInformationAsync("cache", promptText, Guid.NewGuid().ToString(), additionalMetadata: completionText);
     }
 
     public async Task<string> CheckCache(string userPrompt)
     {
         string cacheResult = string.Empty;
-        var memoryResults = memory.SearchAsync("cache", userPrompt, limit: 1, minRelevanceScore: 0.95);
+
+        //Search memory for userPrompt
+        var memoryResults = memory.SearchAsync(
+                "cache",
+                userPrompt,
+                limit: 1, minRelevanceScore: 0.95);
         await foreach (var memoryResult in memoryResults)
         {
-            cacheResult = memoryResult.Metadata.AdditionalMetadata.ToString();
-            break;
+            cacheResult = cacheResult + memoryResult.Metadata.AdditionalMetadata.ToString();
         }
+
         return cacheResult;
     }
 
     public async Task ClearCacheAsync()
     {
+        // Clear cache by deleting memory store collection
         await memoryStore.DeleteCollectionAsync("cache");
     }
 

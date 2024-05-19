@@ -84,7 +84,7 @@ public class ChatService
             string collectionName = await GetCollectionNameFromSelection(selectedCollectionName, prompt);
             bool cacheEnabled = (selectedCacheEnable == "yes") ? true : false;
 
-            // Check if  cache  enabled and get a chache hit
+            // Check if  cache enabled and get a chache hit
             // add cache check code here
 
             if (true) // Prompt processing block
