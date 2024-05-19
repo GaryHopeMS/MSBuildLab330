@@ -290,11 +290,12 @@ Humans interact with each other through conversations that have some context of 
 
 Let's explore what happens when we test the LLM with follow-up questions in our conversation
 
-1. If you shutdown the app, open a new terminal and start the application using **dotnet run** and open your browser to http://localhost:8100
+1. If you shutdown the app, return to the terminal window and start the application using **dotnet run** 
 
     ```bash
     dotnet run
     ```
+1. Open your browser to http://localhost:8100, remember that you can always use tYou can **ctrl+click** on the URL that is part of **Now listening on http://localhost:8100** in the terminal window.
 
 1. In the web application, create a new chat session and ask the AI assistant the same question again, `What is the highest mountain in North America?` and wait for the response. The answer will be "Mount Denali, also known as Mount McKinley," with some additional information. 
 
@@ -303,8 +304,12 @@ Let's explore what happens when we test the LLM with follow-up questions in our 
 1. Ask the follow-up question, `What is the second highest?`. The response generated would likely look like the one below, having nothing to do with your first question, or the LLM may respond that it doesn't understand your question.
 
     !IMAGE[LAB330ScreenShot5.png](instructions261180/LAB330ScreenShot5.png)
+    
 
 What you are observing is the fact that LLM's are stateless. They do not by themselves maintain any conversation history and therefore would be missing the context necessary for them to respond appropriately to the second question.
+
+1. Close the application browser window
+1. Return to the terminal window and stop the application by pressing Ctrl+C
 
 In this exercise we will show how to implement chat history, often called a **Chat Context Window** for a Generative AI application. We will also explain the concept of tokens for an LLM and why these are important to consider when implementing a context window.
 
@@ -554,7 +559,7 @@ public async Task<(string? response, int promptTokens, int responseTokens)>
     }
 }
 ```
-5. Save **ChatService.cs** 
+5. Save **SemanticKernel.cs** 
 
 6. In the terminal and start the application using **dotnet run** and open your browser to http://localhost:8100
 
@@ -566,6 +571,9 @@ In the web application, create a new chat session and ask the AI assistant the s
 !IMAGE[LAB330ScreenShot6.png](instructions261180/LAB330ScreenShot6.png)
 
 Well done! We now have a AI assistant that is aware of the conversation context 
+
+9. Close the application browser window
+10. Return to the terminal window and stop the application by pressing Ctrl-C
 
 Next we will explore adding context from other data sources.
 
@@ -731,7 +739,7 @@ public async Task<string> ProcessUserPrompt(string? sessionId, string prompt, st
 
 5. Open the **Services/MongoDbService.cs** file.
 6. Locate the **VectorSearchAsync**  method.
-7. Replace the "// Perform vector search ..." comments with the following code.
+7. Replace the code block below "// Perform vector search ..." comments with the following code.
 ```csharp
  // Connect to collection
  IMongoCollection<BsonDocument> collection = _database.GetCollection<BsonDocument>(collectionName);
@@ -972,7 +980,7 @@ public async Task<string> ProcessUserPrompt(string? sessionId, string prompt, st
 6. Open the **Services/SemanticKernel.cs** file 
 7. Locate the **GetChatCompletionAsync** method 
 
-7. Replace the ```csharp string systemPrompt = _simpleSystemPrompt;``` statement with ```csharp  string systemPrompt = _cosmicSystemPrompt + RAGContext;```
+7. Replace the ``` string systemPrompt = _simpleSystemPrompt;``` statement with ``` string systemPrompt = _cosmicSystemPrompt + RAGContext;```
 
 This will change the system prompt to one that refers to an appended JSON formated *RAGContext* dataset. In essesence this embededs the data we retrived from the vector search into the system prompt allowing the rest of the chat to directly reference it.
 
@@ -1066,9 +1074,12 @@ Your chat should still function the way it used and provide and support conversa
 
 !IMAGE[LAB330ScreenShot8.png](instructions261180/LAB330ScreenShot8.png)
 
-12. Create a new chat session, set the data source to **customers** and let's ask it something about a customer, maybe she just introduced herself and I want to send her an email `What is Nancy Hirota's email address` and lets follow that up with a questions that requires conversational context `what details do you have for her`
+13. Create a new chat session, set the data source to **customers** and let's ask it something about a customer, maybe she just introduced herself and I want to send her an email `What is Nancy Hirota's email address` and lets follow that up with a questions that requires conversational context `what details do you have for her`
 
 !IMAGE[LAB330ScreenShot9.png](instructions261180/LAB330ScreenShot9.png)
+
+14. Close the application browser window
+15. Return to the terminal window and stop the application by pressing Ctrl+C
 
 Congratulations!
 We you met one of our key objectives: You have created an intelligent AI chat assistant that can leverage our data to provide contextually aware answers.
@@ -1078,7 +1089,7 @@ We you met one of our key objectives: You have created an intelligent AI chat as
 
 Large language models are amazing with their ability to generate completions to a user's prompts. However, these requests to generate completions from an LLM are computationally expensive (token hungry), and can also be quite slow. As you would have seen from the previous exercise token cost and latency increases as the amount of context we provide increases. 
 
-Using a similar *RAG Pattern* to that which we used to support our LLM calls with contextual data from transactional data sources, the persisted conversation history can be used as a source over which to perform vector queries. By generating an embedding of the provided prompt and using a vector search to identify and return completions from previous historic conversations that closely match the meaning of the prompt we can create an effective cache for some scenarios. This type of specialized cache can be referred to as a **semantic cache** and often exceeds the performance of simple keyword matching using on a key-value store traditionally used.  
+Using a similar *RAG Pattern* to that which you used in the previous exercise to enhance the LLM calls with contextual data from transactional data sources, the persisted conversation history can be used as a source over which to perform vector queries. By generating an embedding of the provided prompt and using a vector search to identify and return completions from previous historic conversations that closely match the meaning of the prompt we can create an effective cache for some scenarios. This type of specialized cache can be referred to as a **semantic cache** and often exceeds the performance of simple keyword matching using on a key-value store traditionally used.  
 
 Using Sematic Kernel extensibility framework interfaces allow it to flexibly integrate any AI service and data stores through a set of connectors that make it easy to add memories in addition to the AI models we have used thus far. With the introduction of the **Semantic Kernel Memory Connector for Cosmos DB for MongoDB** we have a plug and play method of implementing our sematic cache. 
 
@@ -1114,7 +1125,7 @@ This code:
 Just like that we have a database service backed memory store that will automatically  generate embeddings and provides the ability to run vector queries directly through the Semantic Kernel SDK.
 
 1. Locate the **AddCachedMemory**  method within the **SemanticKernel.cs** file.
-1. Replace the " //Save prompt and completion to memory" comments with the following code
+1. Replace the code block below " //Save prompt and completion to memory" comments with the following code
 ```csharp
 //Save prompt and completion to memory
 await memory.SaveInformationAsync("cache", promptText, Guid.NewGuid().ToString(), additionalMetadata: completionText);
@@ -1130,7 +1141,7 @@ The *AddCachedMemory* method should now look like:
  ```
  
 1. Locate the **CheckCache**  method within the **SemanticKernel.cs** file.
-1. Replace the "//Search memory for userPrompt" comments with the following code:
+1. Replace the code block below "//Search memory for userPrompt" comments with the following code:
 ```csharp
   //Search memory for userPrompt
   var memoryResults = memory.SearchAsync(
@@ -1169,7 +1180,7 @@ The *CheckCache* method should now look like:
  ```
 
 1. Locate the **ClearCacheAsync**  method within the **SemanticKernel.cs** file.
-1. Replace the "// Clear cache by deleting... " comments with the following code:
+1. Replace the code block below "// Clear cache by deleting... " comments with the following code:
 
 ```csharp
    // Clear cache by deleting memory store collection
@@ -1185,7 +1196,7 @@ public async Task ClearCacheAsync()
     await memoryStore.DeleteCollectionAsync("cache");
 }
 ```
-3. Save the **Services/MongoDBService.cs** file.
+3. Save the **SemanticKernel.cs** file.
 
 1. Open the **Services/ChatService.cs** file.
 1. Locate the **ProcessUserPrompt** method
@@ -1300,14 +1311,42 @@ At this point, we have implemented our semantic cache and are ready to test.
     ```
 1. Create a new chat session 
 1. Enable the cache through the UI
-1. Ask `What is the largest lake in North America?`. And it will respond with a completion created by the model saying that it is `Lake Superior`
-1. Next, ask the next follow up question `What is the third largest?`. You should see the response as `Lake Michigan` with some additional information.
+1. Ask `What is the largest lake in North America?`. And it will respond with a completion created by the model saying that it is Lake Superior.
+1. Next, ask the next follow up question `What is the third largest?`. You should see the response is Lake Michigan with some additional information.
+
+!IMAGE[LAB330BScreenShot3.png](instructions261180/LAB330BScreenShot3.png)
 
 Next validate the Semantic cache is working. 
 
-1. Create a new chat session 
-1. Enable the cache through the UI
-1. Start a new session and ask a slightly modified version of our original question `What is the biggest lake in North America?`. You will notice that it responds correctly, but it didn't hit the cache as there were tokens consumed.
+1. Create a new chat session.
+1. Ensure that the cache enabled in the UI
+1. Ask a slightly modified version of our original question `What is the biggest lake in North America?`. You will notice that it responds correctly, used hit the cache and there were no tokens consumed.
+
+!IMAGE[LAB330BScreenShot4.png](instructions261180/LAB330BScreenShot4.png)
+
+Now lets explore some challenges
+1. Create a new chat session.
+1. Ensure that the cache enabled in the UI
+1. Ask a slightly modified version of our original question `What is the largest animal in Africa?`. You will notice that it responds with the elephant.
+1. Next, ask the next follow up question `What is the third largest?`. You should see the response is Lake Michigan - not what we were expecting.
+
+!IMAGE[LAB330BScreenShot5.png](instructions261180/LAB330BScreenShot5.png)
+
+What you are seeing here is that the cache too needs to have appropriate context, in our current implementation we chose to generate a query embedding using the prompt alone,we could have used the conversation context.  Whist just switching to the conversation context as defined by the number of tokens this may provide you with the expected benefit. As an example tuning the cache embedding to a conversation context that is limited by the number of conversation turns may give you better results and increased cache hit ratio.
+Again this is one of those areas that requires experimentation, with the optimum configuration varying from scenario to scenario.
+
+Now lets combine the use of additional data from our database with 
+1. Create a new chat session.
+1. Ensure that the cache enabled in the UI and customer is selected as the data source.
+1. Ask a slightly modified version of our original question `What is Nancy Hirota's email address`. You will notice that it responds with the elephant.
+1. And ask the same followup question `What is Nancy Hirota's email address`.
+
+!IMAGE[LAB330BScreenShot6.png](instructions261180/LAB330BScreenShot6.png)
+
+You can see that the token cost and response time savings for RAG pattern queries can be significant, almost 2000 tokens in the case of this query. 
+
+Additionaly since the cache can be scoped differntly from the conversation context, in this implementation it is global - we search across all sessions, there are many scenarios that can significantly benefit from a sematic cache when appropriatly tuned for the use case.
+
 
 
 ===
