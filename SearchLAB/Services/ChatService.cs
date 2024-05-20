@@ -11,9 +11,7 @@ namespace Search.Services;
 
 public class ChatService
 {
-    /// <summary>
-    /// All data is cached in the _sessions List object.
-    /// </summary>
+
     private static List<Session> _sessions = new();
 
     private readonly MongoDbService _mongoDbService;
@@ -24,47 +22,11 @@ public class ChatService
 
     public ChatService(MongoDbService mongoDbService, SemanticKernelService semanticKernelService, ILogger logger)
     {
-
         _mongoDbService = mongoDbService;
         _semanticKernelService = semanticKernelService;
-
         _logger = logger;
     }
-
-    private async Task<string> GetCollectionNameFromSelection(string selectedCollectionName, string prompt)
-    {
-        string collectionName = "none"; // default source collection context
-
-        switch (selectedCollectionName)
-        {
-            case "<none>":
-                collectionName = "none";
-                break;
-
-            case "<auto>":
-                collectionName = "none";
-                // Perform source selection lookup using LLM
-                // Add code to perform source selection using LLM 
-                await Task.Delay(0); 
-                break;
-
-            default:
-                collectionName = selectedCollectionName;
-                break;
-        }
-        return collectionName;
-    }
-
-    private string GetConversationStringFromMessages(List<Message> conversationContext, string prompt)
-    {
-        var conversationString = string
-            .Join(Environment.NewLine,
-                conversationContext.Select(m => m.Prompt + Environment.NewLine + m.Completion)
-                .ToArray() + Environment.NewLine + prompt);
-
-        return conversationString;
-    }
-
+    
     public async Task<string> ProcessUserPrompt(string? sessionId, string prompt, string selectedCollectionName, string selectedCacheEnable)
     {
         try
@@ -132,7 +94,59 @@ public class ChatService
         }
     }
 
-    
+    private List<Message> GetConversationContext(
+       string sessionId, int maxConverstionTokens)
+    {
+        // conversationMessages contains an ordered list of all conversation messsages for a session
+        int index = _sessions.FindIndex(s => s.SessionId == sessionId);
+        List<Message> conversationMessages = _sessions[index]
+            .Messages
+            .OrderByDescending(m => m.TimeStamp)
+            .ToList();
+
+        List<Message> trimmedMessages = new List<Message>();
+
+        //Tokenize and trim conversation history based on tokens
+        // add code to tokenize and trim context
+
+        return trimmedMessages.Reverse<Message>().ToList();
+
+    }
+
+    private async Task<string> GetCollectionNameFromSelection(string selectedCollectionName, string prompt)
+    {
+        string collectionName = "none"; // default source collection context
+
+        switch (selectedCollectionName)
+        {
+            case "<none>":
+                collectionName = "none";
+                break;
+
+            case "<auto>":
+                collectionName = "none";
+                // Perform source selection lookup using LLM
+                // Add code to perform source selection using LLM 
+                await Task.Delay(0);
+                break;
+
+            default:
+                collectionName = selectedCollectionName;
+                break;
+        }
+        return collectionName;
+    }
+
+    private string GetConversationStringFromMessages(List<Message> conversationContext, string prompt)
+    {
+        var conversationString = string
+            .Join(Environment.NewLine,
+                conversationContext.Select(m => m.Prompt + Environment.NewLine + m.Completion)
+                .ToArray() + Environment.NewLine + prompt);
+
+        return conversationString;
+    }
+
     private string GetConversationHistoryString(string sessionId, int turns)
     {
 
@@ -153,24 +167,7 @@ public class ChatService
         return conversation;
     }
 
-    private List<Message> GetConversationContext(
-        string sessionId, int maxConverstionTokens)
-    {
-        // conversationMessages contains an ordered list of all conversation messsages for a session
-        int index = _sessions.FindIndex(s => s.SessionId == sessionId);
-        List<Message> conversationMessages = _sessions[index]
-            .Messages
-            .OrderByDescending(m => m.TimeStamp)
-            .ToList();
-
-        List<Message> trimmedMessages = new List<Message>();
-
-        //Tokenize and trim conversation history based on tokens
-        // add code to tokenize and trim context
-
-        return trimmedMessages.Reverse<Message>().ToList();
-
-    }
+   
 
 
     /// <summary>
@@ -268,6 +265,5 @@ public class ChatService
     {
         await _semanticKernelService.ClearCacheAsync();
     }
-
 
 }

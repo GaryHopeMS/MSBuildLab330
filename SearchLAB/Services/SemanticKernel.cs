@@ -179,6 +179,54 @@ public class SemanticKernelService
         }
     }
 
+    public async Task<(float[] vectors, int embeddingsTokens)>
+        GetEmbeddingsAsync(string input)
+    {
+        try
+        {
+            // Generate embeddings
+            // add code to generate embedding here
+            await Task.Delay(0);
+            float[] embeddingsArray = new float[0];
+
+
+            int responseTokens = 0;
+            return (embeddingsArray, responseTokens);
+        }
+        catch (Exception ex)
+        {
+            string message = $"SemanticKernel.GetEmbeddingsAsync(): {ex.Message}";
+            _logger.LogError(message);
+            throw;
+
+        }
+    }
+
+    public async Task AddCachedMemory(string promptText, string completionText)
+    {
+        //Save prompt and completion to memory
+        // add code to save to memory
+        await Task.Delay(0); // place holder code
+    }
+
+    public async Task<string> CheckCache(string userPrompt)
+    {
+        string cacheResult = string.Empty;
+
+        //Search memory for userPrompt
+        // add code to query memory
+        await Task.Delay(0); // place holder code
+
+        return cacheResult;
+    }
+
+    public async Task ClearCacheAsync()
+    {
+        // Clear cache by deleting memory store collection
+        // add code to clear the cache
+        await Task.Delay(0); // place holder code
+    }
+
     public async Task<(string? response, int promptTokens, int responseTokens)>
         GetPreferredSourceAsync(string prompt)
     {
@@ -218,54 +266,6 @@ public class SemanticKernelService
 
         }
 
-    }
-
-    public async Task AddCachedMemory(string promptText, string completionText)
-    {
-        //Save prompt and completion to memory
-        // add code to save to memory
-        await Task.Delay(0); // place holder code
-    }
-
-    public async Task<string> CheckCache(string userPrompt)
-    {
-        string cacheResult = string.Empty;
-
-        //Search memory for userPrompt
-        // add code to query memory
-        await Task.Delay(0); // place holder code
-
-        return cacheResult;
-    }
-
-    public async Task ClearCacheAsync()
-    {
-        // Clear cache by deleting memory store collection
-        // add code to clear the cache
-        await Task.Delay(0); // place holder code
-    }
-
-    public async Task<(float[] vectors, int embeddingsTokens)>
-        GetEmbeddingsAsync(string input)
-    {
-        try
-        {
-            // Generate embeddings
-            // add code to generate embedding here
-            await Task.Delay(0);
-            float[] embeddingsArray = new float[0];
-
-
-            int responseTokens = 0;
-            return (embeddingsArray, responseTokens);
-        }
-        catch (Exception ex)
-        {
-            string message = $"SemanticKernel.GetEmbeddingsAsync(): {ex.Message}";
-            _logger.LogError(message);
-            throw;
-
-        }
     }
     
     public async Task<string> SummarizeConversationAsync(string conversation)

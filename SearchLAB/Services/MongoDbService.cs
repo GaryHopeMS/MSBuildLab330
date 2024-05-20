@@ -30,12 +30,6 @@ public class MongoDbService
 
     private int counter = 0;
 
-    public int incCounter()
-    {
-        counter = counter++;
-        return counter;
-    }
-
     public MongoDbService(string connection, string databaseName, string collectionNames, string maxVectorSearchResults, string vectorIndexType, SemanticKernelService semanticKernelService, ILogger logger)
     {
 
@@ -84,6 +78,12 @@ public class MongoDbService
         }
 
        
+    }
+
+    public int incCounter()
+    {
+        counter = counter++;
+        return counter;
     }
 
     public void SetupCollections()
