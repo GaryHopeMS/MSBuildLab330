@@ -71,19 +71,7 @@ public class SemanticKernelService
         Text of the question is :";
 
 
-    /// <summary>
-    /// Creates a new instance of the Semantic Kernel.
-    /// </summary>
-    /// <param name="semanticKernelOptions">Endpoint URI.</param>
-    /// <param name="key">Account key.</param>
-    /// <param name="completionDeploymentName">Name of the deployed Azure OpenAI completion model.</param>
-    /// <param name="embeddingDeploymentName">Name of the deployed Azure OpenAI embedding model.</param>
-    /// <exception cref="ArgumentNullException">Thrown when endpoint, key, or modelName is either null or empty.</exception>
-    /// <remarks>
-    /// This constructor will validate credentials and create a Semantic Kernel instance.
-    /// </remarks>
-    /// 
-    ///public SemanticKernelService(string endpoint, string key, string completionDeploymentName, string embeddingDeploymentName, ILogger logger)
+   
     public SemanticKernelService(OpenAi semanticKernelOptions, MongoDb mongoDbOptions, ILogger logger)
     {
         _simpleSystemPrompt += "";
@@ -257,11 +245,6 @@ public class SemanticKernelService
         await Task.Delay(0); // place holder code
     }
 
-    // <summary>
-    /// Generates embeddings from the deployed OpenAI embeddings model using Semantic Kernel.
-    /// </summary>
-    /// <param name="input">Text to send to OpenAI.</param>
-    /// <returns>Array of vectors from the OpenAI embedding model deployment.</returns>
     public async Task<(float[] vectors, int embeddingsTokens)>
         GetEmbeddingsAsync(string input)
     {
@@ -284,12 +267,7 @@ public class SemanticKernelService
 
         }
     }
-    /// <summary>
-    /// Sends the existing conversation to the Semantic Kernel and returns a two word summary.
-    /// </summary>
-    /// <param name="sessionId">Chat session identifier for the current conversation.</param>
-    /// <param name="conversationText">conversation history to send to Semantic Kernel.</param>
-    /// <returns>Summarization response from the OpenAI completion model deployment.</returns>
+    
     public async Task<string> SummarizeConversationAsync(string conversation)
     {
         //return await summarizePlugin.SummarizeConversationAsync(conversation, kernel);

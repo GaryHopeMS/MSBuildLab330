@@ -181,9 +181,6 @@ public class ChatService
         return _sessions = await _mongoDbService.GetSessionsAsync();
     }
 
-    /// <summary>
-    /// Returns the chat messages to display on the main web page when the user selects a chat from the left-hand nav
-    /// </summary>
     public async Task<List<Message>> GetChatSessionMessagesAsync(string? sessionId)
     {
         ArgumentNullException.ThrowIfNull(sessionId);
@@ -214,9 +211,7 @@ public class ChatService
         return chatMessages;
     }
 
-    /// <summary>
-    /// User creates a new Chat Session.
-    /// </summary>
+
     public async Task CreateNewChatSessionAsync()
     {
         Session session = new();
@@ -224,9 +219,6 @@ public class ChatService
         await _mongoDbService.InsertSessionAsync(session);
     }
 
-    /// <summary>
-    /// Rename the Chat Ssssion from "New Chat" to the summary provided by OpenAI
-    /// </summary>
     public async Task RenameChatSessionAsync(string? sessionId, string newChatSessionName)
     {
         ArgumentNullException.ThrowIfNull(sessionId);
@@ -235,9 +227,6 @@ public class ChatService
         await _mongoDbService.UpdateSessionAsync(_sessions[index]);
     }
 
-    /// <summary>
-    /// User deletes a chat session
-    /// </summary>
     public async Task DeleteChatSessionAsync(string? sessionId)
     {
         ArgumentNullException.ThrowIfNull(sessionId);
@@ -261,9 +250,6 @@ public class ChatService
     }
 
    
-    /// <summary>
-    /// Add user prompt and AI assistance response to the chat session message list object and insert into the data service as a transaction.
-    /// </summary>
     private async Task AddPromptCompletionMessagesAsync(string sessionId, Message message)
     {
 

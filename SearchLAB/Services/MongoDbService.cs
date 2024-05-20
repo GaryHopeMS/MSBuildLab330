@@ -11,9 +11,6 @@ using Microsoft.ML.Tokenizers;
 
 namespace Search.Services;
 
-/// <summary>
-/// Service to access Azure Cosmos DB for Mongo vCore.
-/// </summary>
 public class MongoDbService
 {
     private readonly MongoClient _client;
@@ -39,17 +36,6 @@ public class MongoDbService
         return counter;
     }
 
-    /// <summary>
-    /// Creates a new instance of the service.
-    /// </summary>
-    /// <param name="endpoint">Endpoint URI.</param>
-    /// <param name="key">Account key.</param>
-    /// <param name="databaseName">Name of the database to access.</param>
-    /// <param name="collectionNames">Names of the collections for this retail sample.</param>
-    /// <exception cref="ArgumentNullException">Thrown when endpoint, key, databaseName, or collectionNames is either null or empty.</exception>
-    /// <remarks>
-    /// This constructor will validate credentials and create a service client instance.
-    /// </remarks>
     public MongoDbService(string connection, string databaseName, string collectionNames, string maxVectorSearchResults, string vectorIndexType, SemanticKernelService semanticKernelService, ILogger logger)
     {
 
@@ -77,14 +63,6 @@ public class MongoDbService
 
     }
 
-    /// <summary>
-    /// Perform a vector search on the collection.
-    /// </summary>
-    /// <param name="collectionName">Name of the collection to execute the vector search.</param>
-    /// <param name="embeddings">vectors to use in the vector search.</param>
-    /// <param name="path"> property path of the embeddings vector </param>
-    /// <param name="maxTokens"> property path of the embeddings vector </param>
-    /// <returns>string payload of documents returned from the vector query</returns>
     public async Task<string> VectorSearchAsync(string collectionName, string path, float[] embeddings, int maxTokens)
     {
         try
@@ -108,13 +86,6 @@ public class MongoDbService
        
     }
 
-
-    /// <summary>
-    /// Create a vector index on the collection if one does not exist.
-    /// </summary>
-    /// <param name="collectionName">Name of the collection to create the vector index on.</param>
-    /// <returns>void</returns>
-    /// 
     public void SetupCollections()
     {
 
@@ -463,11 +434,6 @@ public class MongoDbService
     }
 
 
-
-    /// <summary>
-    /// Gets a list of all current chat sessions.
-    /// </summary>
-    /// <returns>List of distinct chat session items.</returns>
     public async Task<List<Session>> GetSessionsAsync()
     {
         List<Session> sessions = new List<Session>();
@@ -488,11 +454,6 @@ public class MongoDbService
         return sessions;
     }
 
-    /// <summary>
-    /// Gets a list of all current chat messages for a specified session identifier.
-    /// </summary>
-    /// <param name="sessionId">Chat session identifier used to filter messages.</param>
-    /// <returns>List of chat message items for the specified session.</returns>
     public async Task<List<Message>> GetSessionMessagesAsync(string sessionId)
     {
         List<Message> messages = new();
@@ -517,11 +478,6 @@ public class MongoDbService
 
     }
 
-    /// <summary>
-    /// Creates a new chat session.
-    /// </summary>
-    /// <param name="session">Chat session item to create.</param>
-    /// <returns>Newly created chat session item.</returns>
     public async Task InsertSessionAsync(Session session)
     {
         try
@@ -537,11 +493,6 @@ public class MongoDbService
         }
     }
 
-    /// <summary>
-    /// Creates a new chat message.
-    /// </summary>
-    /// <param name="message">Chat message item to create.</param>
-    /// <returns>Newly created chat message item.</returns>
     public async Task InsertMessageAsync(Message message)
     {
         try
@@ -558,11 +509,6 @@ public class MongoDbService
 
     }
 
-    /// <summary>
-    /// Updates an existing chat session.
-    /// </summary>
-    /// <param name="session">Chat session item to update.</param>
-    /// <returns>Revised created chat session item.</returns>
     public async Task UpdateSessionAsync(Session session)
     {
 
@@ -582,10 +528,6 @@ public class MongoDbService
         }
     }
 
-    /// <summary>
-    /// Batch create or update chat messages and session.
-    /// </summary>
-    /// <param name="messages">Chat message and session items to create or replace.</param>
     public async Task UpsertSessionBatchAsync(Session session, Message message)
     {
         using (var transaction = await _client.StartSessionAsync())
@@ -614,10 +556,6 @@ public class MongoDbService
         }
     }
 
-    /// <summary>
-    /// Batch deletes an existing chat session and all related messages.
-    /// </summary>
-    /// <param name="sessionId">Chat session identifier used to flag messages and sessions for deletion.</param>
     public async Task DeleteSessionAndMessagesAsync(string sessionId)
     {
         try
